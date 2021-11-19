@@ -22,7 +22,7 @@ fun Asset.matches(file: File): Boolean {
 fun Asset.download(root: File, strict: Boolean = false): File {
     val url = URL(this.url)
     val destination = if (strict) root
-    else File(root, path ?: url.file.split("/").last())
+    else root.resolve(path ?: url.file.split("/").last())
 
     // Check if the file already exists
     if (destination.exists() && matches(destination)) {
@@ -66,3 +66,10 @@ fun List<LaunchArgument>.filterMatchesRule(default: RuleAction) =
 
 fun List<LaunchArgument>.toFilteredArray() =
     filterMatchesRule(RuleAction.DISALLOW).map { it.value }.toTypedArray()
+
+fun LaunchJavaVersion.getJavaPath(root: File) = when (OS.type) {
+    OS.Type.WINDOWS -> root.resolve("bin/java.exe")
+    OS.Type.MAC -> root.resolve("jre.bundle/Contents/Home/bin/java")
+    OS.Type.LINUX -> root.resolve("bin/java")
+    else -> throw IllegalStateException("Unsupported OS: ${OS.type}")
+}
