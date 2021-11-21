@@ -2,6 +2,7 @@
 
 package dev.koding.launcher.data.manifest
 
+import dev.koding.launcher.loader.ResourceManager
 import dev.koding.launcher.util.json
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -24,12 +25,12 @@ data class LauncherManifest(
     val inheritsFrom: String? = null
 ) {
     companion object {
-        fun loadResource(resourceName: String): LauncherManifest {
-            val resource = LauncherManifest::class.java.getResourceAsStream(resourceName)
-            val manifest = json.decodeFromStream<LauncherManifest>(resource ?: error("Resource not found"))
+        fun load(resourceManager: ResourceManager, name: String): LauncherManifest {
+            val resource = resourceManager[name]?.file?.inputStream() ?: error("Invalid resource")
+            val manifest = json.decodeFromStream<LauncherManifest>(resource)
 
             if (manifest.inheritsFrom != null) {
-                val sub = loadResource("/profiles/${manifest.inheritsFrom}.json")
+                val sub = resourceManager.getManifest("profile:${manifest.inheritsFrom}")
                 return manifest.copy(
                     arguments = manifest.arguments + sub.arguments,
                     downloads = sub.downloads ?: manifest.downloads,
@@ -126,9 +127,9 @@ data class Asset(
 @Serializable
 data class LaunchArguments(
     @Serializable(with = LaunchArgumentListDeserializer::class)
-    val game: List<LaunchArgument>,
+    val game: List<LaunchArgument> = emptyList(),
     @Serializable(with = LaunchArgumentListDeserializer::class)
-    val jvm: List<LaunchArgument>
+    val jvm: List<LaunchArgument> = emptyList()
 )
 
 @Serializable

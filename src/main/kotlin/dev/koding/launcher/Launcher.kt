@@ -1,19 +1,21 @@
-@file:OptIn(ExperimentalSerializationApi::class)
+@file:OptIn(ExperimentalSerializationApi::class, ObsoleteCoroutinesApi::class)
 
 package dev.koding.launcher
 
 import dev.koding.launcher.auth.AuthManager
 import dev.koding.launcher.data.assets.AssetIndex
 import dev.koding.launcher.data.assets.toAsset
+import dev.koding.launcher.data.config.ProfileConfig
 import dev.koding.launcher.data.jdk.JdkFile
 import dev.koding.launcher.data.jdk.JdkManifest
+import dev.koding.launcher.data.local.LocalConfig
 import dev.koding.launcher.data.manifest.*
 import dev.koding.launcher.data.runtime.JavaRuntime
 import dev.koding.launcher.data.runtime.match
 import dev.koding.launcher.data.runtime.select
+import dev.koding.launcher.loader.ProfileLoader
 import dev.koding.launcher.util.replaceParams
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import mu.KotlinLogging
 import org.apache.logging.log4j.Level
@@ -25,6 +27,8 @@ import java.nio.file.Files
 object Launcher {
 
     private val logger = KotlinLogging.logger {}
+
+    val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
 
     init {
         if (System.getProperty("debug.log") != null) {
@@ -53,7 +57,7 @@ object Launcher {
         return LibraryData(clientJar, folder)
     }
 
-    private fun downloadAssets(manifest: LauncherManifest, folder: File): File {
+    private suspend fun downloadAssets(manifest: LauncherManifest, folder: File): File {
         logger.info { "Downloading asset index" }
         val assetIndex = AssetIndex.load(
             manifest.assetIndex?.download(folder.resolve("indexes"))
@@ -61,19 +65,26 @@ object Launcher {
         )
 
         logger.info { "Downloading assets" }
-        assetIndex.objects.entries.forEach { it.toAsset().download(folder.resolve("objects")) }
+
+        val context = newFixedThreadPoolContext(5, "Assets")
+        assetIndex.objects.entries.map {
+            CoroutineScope(context).async {
+                it.toAsset().download(folder.resolve("objects"))
+            }
+        }.joinAll()
         return folder
     }
 
-    suspend fun launch(manifest: LauncherManifest, root: File) {
+    suspend fun launch(manifest: LauncherManifest, gameDir: File) {
         logger.info { "Launching version: ${manifest.id}" }
 
-        val (clientJar, libraryFolder) = downloadLibraries(manifest, root.resolve("libraries"))
-        val assetsFolder = downloadAssets(manifest, root.resolve("assets"))
-        val javaHome = downloadJava(manifest, root) ?: error("Failed to download Java")
+        val launcherHome = home.resolve("launcher")
+        val (clientJar, libraryFolder) = downloadLibraries(manifest, launcherHome.resolve("libraries"))
+        val assetsFolder = downloadAssets(manifest, launcherHome.resolve("assets"))
+        val javaHome = downloadJava(manifest, launcherHome) ?: error("Failed to download Java")
 
         logger.info { "Authenticating" }
-        val auth = AuthManager(root.resolve("auth")).login()
+        val auth = AuthManager(launcherHome.resolve("auth")).login()
 
         val classpath = listOf(
             *manifest.libraries.filterMatchesRule()
@@ -84,7 +95,7 @@ object Launcher {
         ).joinToString(separator = ":")
 
         val commandLine = listOf(
-            getJavaPath(javaHome)?.absolutePath ?: error("No Java version"),
+            getJavaPath(javaHome).absolutePath ?: error("No Java version"),
             *manifest.arguments.jvm.toFilteredArray(),
             manifest.mainClass,
             *manifest.arguments.game.toFilteredArray()
@@ -97,7 +108,7 @@ object Launcher {
 
                 "auth_player_name" to auth.profile.name,
                 "version_name" to manifest.id,
-                "game_directory" to root.absolutePath, // TODO: Change this
+                "game_directory" to gameDir,
                 "assets_root" to assetsFolder.absolutePath,
                 "assets_index_name" to (manifest.assets ?: error("No assets index")),
                 "auth_uuid" to auth.profile.id,
@@ -110,9 +121,10 @@ object Launcher {
         logger.info { "Launching Minecraft" }
         logger.debug { "Command line: ${commandLine.joinToString(separator = " ")}" }
 
+        if (!gameDir.exists()) gameDir.mkdirs()
         withContext(Dispatchers.IO) {
             val process = ProcessBuilder(commandLine)
-                .directory(root)
+                .directory(gameDir)
                 .inheritIO()
                 .start()
             process.waitFor()
@@ -136,7 +148,6 @@ object Launcher {
                     if (!dir.exists()) dir.mkdirs()
                 }
                 JdkFile.Type.FILE -> {
-                    logger.debug { "Downloading file: $path" }
                     val file = data.downloads?.raw?.download(home.resolve(path), strict = true) ?: return@forEach
                     if (data.executable == true) file.setExecutable(true)
                 }
@@ -162,6 +173,8 @@ object Launcher {
 
 
 suspend fun main() {
-    val manifest = LauncherManifest.loadResource("/profile.json")
-    Launcher.launch(manifest, File("."))
+    val config = LocalConfig.load()
+    val loader = ProfileLoader(ProfileConfig.fromUrl(config.profile))
+    loader.load()
+    loader.start()
 }

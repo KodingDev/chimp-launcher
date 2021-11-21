@@ -1,60 +1,45 @@
 {
-  "id": "fabric-loader-0.12.5-1.17.1",
-  "inheritsFrom": "1.17.1",
-  "releaseTime": "2021-11-20T22:20:37+0000",
-  "time": "2021-11-20T22:20:37+0000",
-  "type": "release",
-  "mainClass": "net.fabricmc.loader.impl.launch.knot.KnotClient",
-  "arguments": {
-    "game": [],
-    "jvm": [
-      "-DFabricMcEmu= net.minecraft.client.main.Main "
+  "name": "chimp-test-profile",
+  "launch": {
+    "profile": "profile:fabric-loader-0.12.5-1.17.1",
+    "arguments": [
+      "--server",
+      "mc.koding.dev",
+      "--port",
+      "25565"
     ]
   },
-  "libraries": [
+  "resources": [
     {
-      "name": "net.fabricmc:tiny-mappings-parser:0.3.0+build.17",
-      "url": "https://maven.fabricmc.net/"
+      "name": "profile:1.17.1",
+      "type": "dev.koding.launcher.data.config.UrlResource",
+      "url": "https://launchermeta.mojang.com/v1/packages/59734133c4768dd79fa3c9b7a7650a713a8d294a/1.17.1.json"
     },
     {
-      "name": "net.fabricmc:sponge-mixin:0.10.6+mixin.0.8.4",
-      "url": "https://maven.fabricmc.net/"
+      "name": "profile:fabric-loader-0.12.5-1.17.1",
+      "type": "dev.koding.launcher.data.config.UrlResource",
+      "url": "https://fabricmc.net/download/vanilla/?intermediary=1.17.1&loader=0.12.5&format=profileJson"
     },
     {
-      "name": "net.fabricmc:tiny-remapper:0.6.0",
-      "url": "https://maven.fabricmc.net/"
+      "name": "mod:lazydfu",
+      "type": "dev.koding.launcher.data.config.UrlResource",
+      "url": "https://cdn.modrinth.com/data/hvFnDODi/versions/0.1.2/lazydfu-0.1.2.jar"
     },
     {
-      "name": "net.fabricmc:access-widener:2.0.1",
-      "url": "https://maven.fabricmc.net/"
-    },
-    {
-      "name": "org.ow2.asm:asm:9.2",
-      "url": "https://maven.fabricmc.net/"
-    },
-    {
-      "name": "org.ow2.asm:asm-analysis:9.2",
-      "url": "https://maven.fabricmc.net/"
-    },
-    {
-      "name": "org.ow2.asm:asm-commons:9.2",
-      "url": "https://maven.fabricmc.net/"
-    },
-    {
-      "name": "org.ow2.asm:asm-tree:9.2",
-      "url": "https://maven.fabricmc.net/"
-    },
-    {
-      "name": "org.ow2.asm:asm-util:9.2",
-      "url": "https://maven.fabricmc.net/"
-    },
-    {
-      "name": "net.fabricmc:intermediary:1.17.1",
-      "url": "https://maven.fabricmc.net/"
-    },
-    {
-      "name": "net.fabricmc:fabric-loader:0.12.5",
-      "url": "https://maven.fabricmc.net/"
+      "name": "mod:fabricapi",
+      "type": "dev.koding.launcher.data.config.UrlResource",
+      "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/0.42.1+1.17/fabric-api-0.42.1+1.17.jar"
     }
-  ]
+  ],
+  "files": {
+    "mods/LazyDFU.jar": {
+      "resource": "mod:lazydfu"
+    },
+    "mods/FabricAPI.jar": {
+      "resource": "mod:fabricapi"
+    },
+    "test.txt": {
+      "action": "delete"
+    }
+  }
 }

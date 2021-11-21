@@ -31,7 +31,7 @@ fun Asset.download(root: File, strict: Boolean = false): File {
     }
 
     // Download the file
-    logger.info { "Downloading file: $url" }
+    logger.info { "Downloading file: $url (${(size ?: 0L) / 1_000.0}KB)" }
     url.openStream().use { input ->
         destination.parentFile.mkdirs()
         destination.outputStream().use { output -> input.copyTo(output) }
