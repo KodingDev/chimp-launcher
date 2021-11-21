@@ -2,6 +2,7 @@
 
 package dev.koding.launcher
 
+import dev.koding.launcher.auth.MicrosoftAuthProvider
 import dev.koding.launcher.data.assets.AssetIndex
 import dev.koding.launcher.data.assets.toAsset
 import dev.koding.launcher.data.jdk.JdkFile
@@ -14,7 +15,6 @@ import dev.koding.launcher.util.replaceParams
 import kotlinx.serialization.ExperimentalSerializationApi
 import java.io.File
 import java.nio.file.Files
-import java.util.*
 
 object Launcher {
 
@@ -51,6 +51,8 @@ object Launcher {
             clientJar.absolutePath
         ).joinToString(separator = ":")
 
+        val auth = MicrosoftAuthProvider(root.resolve("auth")).login()
+
         val commandLine = listOf(
             manifest.javaVersion.getJavaPath(javaHome).absolutePath,
             *manifest.arguments.jvm.toFilteredArray(),
@@ -63,20 +65,20 @@ object Launcher {
                 "launcher_version" to "1.0.0",
                 "classpath" to classpath,
 
-                "auth_player_name" to "Test",
+                "auth_player_name" to auth.profile.name,
                 "version_name" to manifest.id,
                 "game_directory" to root.absolutePath, // TODO: Change this
                 "assets_root" to assetsFolder.absolutePath,
                 "assets_index_name" to manifest.assets,
-                "auth_uuid" to UUID.randomUUID(),
-                "auth_access_token" to "nonono",
-                "user_type" to "mojang", // literally useless
+                "auth_uuid" to auth.profile.id,
+                "auth_access_token" to auth.token.accessToken,
+                "user_type" to "xbox", // literally useless
                 "version_type" to manifest.type
             )
         }
 
         // TODO: Fix warnings
-        println(commandLine)
+        logger.info { "Launching Minecraft with arguments line: ${commandLine.joinToString(" ")}" }
         val process = ProcessBuilder(commandLine)
             .directory(root)
             .inheritIO()

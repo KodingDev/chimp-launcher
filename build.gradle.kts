@@ -25,6 +25,8 @@ dependencies {
 
     implementation("io.ktor:ktor-client-java:1.6.5")
     implementation("io.ktor:ktor-client-serialization:1.6.5")
+    implementation("io.ktor:ktor-client-logging:1.6.5")
+    implementation("io.ktor:ktor-server-netty:1.6.5")
 }
 
 tasks.withType<KotlinCompile> {
