@@ -2,7 +2,7 @@
 
 package dev.koding.launcher
 
-import dev.koding.launcher.auth.MicrosoftAuthProvider
+import dev.koding.launcher.auth.AuthManager
 import dev.koding.launcher.data.assets.AssetIndex
 import dev.koding.launcher.data.assets.toAsset
 import dev.koding.launcher.data.jdk.JdkFile
@@ -51,8 +51,7 @@ object Launcher {
             clientJar.absolutePath
         ).joinToString(separator = ":")
 
-        val auth = MicrosoftAuthProvider(root.resolve("auth")).login()
-
+        val auth = AuthManager(root.resolve("auth")).login()
         val commandLine = listOf(
             manifest.javaVersion.getJavaPath(javaHome).absolutePath,
             *manifest.arguments.jvm.toFilteredArray(),
@@ -72,7 +71,7 @@ object Launcher {
                 "assets_index_name" to manifest.assets,
                 "auth_uuid" to auth.profile.id,
                 "auth_access_token" to auth.token.accessToken,
-                "user_type" to "xbox", // literally useless
+                "user_type" to "mojang",
                 "version_type" to manifest.type
             )
         }

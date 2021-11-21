@@ -2,6 +2,11 @@ package dev.koding.launcher.util
 
 import java.io.File
 import java.security.MessageDigest
+import javax.swing.Box
+import javax.swing.JLabel
+import javax.swing.JOptionPane
+import javax.swing.JPasswordField
+
 
 val File.sha1: String
     get() {
@@ -38,4 +43,29 @@ object OS {
 
     val version: String = System.getProperty("os.version")
     val arch: String = System.getProperty("os.arch")
+}
+
+object InputUtil {
+    fun askPassword(prompt: String): String? {
+        val jpf = JPasswordField()
+        val box = Box.createVerticalBox().apply {
+            add(JLabel(prompt))
+            add(jpf)
+        }
+
+        val dialog = JOptionPane.showConfirmDialog(null, box, "Input", JOptionPane.OK_CANCEL_OPTION)
+        return if (dialog == JOptionPane.OK_OPTION) jpf.password.concatToString() else null
+    }
+
+    fun askSelection(prompt: String, vararg options: String) =
+        JOptionPane.showOptionDialog(
+            null,
+            prompt,
+            "Input",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]
+        )
 }

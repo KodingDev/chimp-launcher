@@ -20,7 +20,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import java.awt.Desktop
-import java.io.File
 import java.net.URI
 import java.util.concurrent.CompletableFuture
 import kotlin.random.Random
@@ -29,7 +28,7 @@ private const val CLIENT_ID = "92b1e10b-a6d8-4411-bcc8-d17c79c85aa7"
 private const val SCOPES = "XboxLive.signin XboxLive.offline_access"
 private const val REDIRECT_URI = "http://localhost:8080/"
 
-class MicrosoftAuthProvider(root: File) : AuthProvider(root) {
+class MicrosoftAuthProvider : AuthProvider() {
 
     private val logger = KotlinLogging.logger {}
 
@@ -224,8 +223,4 @@ class MicrosoftAuthProvider(root: File) : AuthProvider(root) {
     data class MinecraftTokenRequest(
         val identityToken: String
     )
-}
-
-suspend fun main() {
-    println(MicrosoftAuthProvider(File(".")).login())
 }
