@@ -15,13 +15,15 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import java.awt.Desktop
 import java.net.URI
-import java.util.concurrent.CompletableFuture
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.random.Random
 
 private const val CLIENT_ID = "92b1e10b-a6d8-4411-bcc8-d17c79c85aa7"
@@ -50,6 +52,7 @@ class MicrosoftAuthProvider : AuthProvider() {
     }
 
     private suspend fun fetchOauthToken(): OAuthToken {
+        logger.debug { "Fetching Microsoft OAuth token" }
         val verifier = Random.nextBytes(32).toUrlBase64()
         val code = getAuthorizationCode(verifier) ?: error("Failed to get code")
         return getAuthorizationToken(
@@ -61,10 +64,12 @@ class MicrosoftAuthProvider : AuthProvider() {
 
     private suspend fun OAuthToken.fetchLoginData(): MicrosoftAuthData {
         // Authenticating with Xbox
+        logger.debug { "Authenticating with Xbox" }
         val xblToken = getXBLToken(this)
         val xstsToken = getXSTSToken(xblToken)
 
         // Get Minecraft token & profile
+        logger.debug { "Getting Minecraft token & profile" }
         val mcToken = getMinecraftToken(xblToken, xstsToken)
         val mcProfile = MinecraftAPI.getMinecraftProfile(mcToken.accessToken)
 
@@ -101,29 +106,31 @@ class MicrosoftAuthProvider : AuthProvider() {
             }
         }
 
-        val code = CompletableFuture<String>()
-        val server = embeddedServer(Netty, port = 8080) {
-            routing {
-                static("css") {
-                    resources("web/css")
-                }
+        logger.info { "Waiting for authorization code" }
+        val code = suspendCoroutine<String> { cont ->
+            embeddedServer(Netty, port = 8080) {
+                routing {
+                    static("css") {
+                        resources("web/css")
+                    }
 
-                get("/") {
-                    code.complete(
-                        call.request.queryParameters["code"]
+                    get("/") {
+                        val code = call.request.queryParameters["code"]
                             ?: return@get call.respond("Code not provided")
-                    )
 
-                    logger.info { "Code: $code" }
-                    call.respondResource("/web/microsoft/success.html")
+                        logger.debug { "Got code: $code" }
+                        call.respondResource("/web/microsoft/success.html")
+                        cont.resume(code)
+
+                        delay(1000)
+                        (environment as? ApplicationEngineEnvironment)?.stop()
+                    }
                 }
-            }
-        }.start()
+            }.start()
+        }
 
-        val codeData = withContext(Dispatchers.IO) { code.get() }
-        server.stop(1000, 5000)
-        logger.info { "Gone!" }
-        return codeData
+        logger.debug { "Server shutdown" }
+        return code
     }
 
     private suspend fun getAuthorizationToken(vararg params: Pair<String, String>): OAuthToken =

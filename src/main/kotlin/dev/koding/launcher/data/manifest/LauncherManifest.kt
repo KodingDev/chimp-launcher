@@ -78,7 +78,6 @@ data class Library(
             Asset("$url$path", path = path)
         }
 
-    // TODO: This could be optimized but later
     val assets = listOfNotNull(
         asset,
         downloads?.classifiers?.macosNatives,
@@ -101,8 +100,6 @@ data class LibraryNatives(
     val macos: String? = null
 )
 
-// TODO: Make this more generic to just download
-// all assets
 @Serializable
 data class LibraryClassifiers(
     @SerialName("natives-linux") val linuxNatives: Asset? = null,

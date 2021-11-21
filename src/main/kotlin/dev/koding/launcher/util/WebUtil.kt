@@ -18,7 +18,7 @@ val httpClient = HttpClient {
         })
     }
 
-    if (System.getProperty("ktor.logging") != null) {
+    if (System.getProperty("debug.ktor") != null) {
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.ALL

@@ -6,6 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import mu.KotlinLogging
 import java.io.File
 
 @Serializable
@@ -44,16 +45,17 @@ data class MinecraftToken(
 }
 
 abstract class AuthProvider {
-
     abstract suspend fun login(current: AuthData? = null): AuthData
-
 }
 
 class AuthManager(root: File) {
+    private val logger = KotlinLogging.logger {}
     private val authFile = File(root, "auth.json")
 
     suspend fun login(): AuthData {
         val current = getCurrentData()
+        logger.debug { "Current auth data: $current" }
+
         val provider = current?.getProvider()
             ?: when (InputUtil.askSelection("Select an account type", "Microsoft", "Mojang")) {
                 0 -> MicrosoftAuthProvider()
@@ -61,8 +63,11 @@ class AuthManager(root: File) {
                 else -> throw IllegalArgumentException("Invalid selection")
             }
 
+        logger.info { "Selected provider: ${provider::class.java.simpleName}" }
         val data = provider.login(current)
         authFile.writeText(data.toJson())
+
+        logger.debug { "New auth data: $data" }
         return data
     }
 

@@ -23,6 +23,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
 
     implementation("io.github.microutils:kotlin-logging:2.0.11")
+    implementation("org.apache.logging.log4j:log4j-core:2.14.1")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
 
     implementation("io.ktor:ktor-client-java:1.6.5")

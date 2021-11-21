@@ -12,49 +12,79 @@ import dev.koding.launcher.data.runtime.JavaRuntime
 import dev.koding.launcher.data.runtime.match
 import dev.koding.launcher.data.runtime.select
 import dev.koding.launcher.util.replaceParams
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
+import mu.KotlinLogging
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.config.Configurator
 import java.io.File
 import java.nio.file.Files
 
 object Launcher {
 
-    suspend fun launch(manifest: LauncherManifest, root: File) {
-        val libraries = manifest.libraries.filter { it.rules.matches(RuleAction.ALLOW) == RuleAction.ALLOW }
+    private val logger = KotlinLogging.logger {}
 
-        val librariesFolder = root.resolve("libraries")
-        val assetsFolder = root.resolve("assets")
+    init {
+        if (System.getProperty("debug.log") != null) {
+            Configurator.setAllLevels(LogManager.getRootLogger().name, Level.DEBUG)
+        }
+    }
 
-        val assetIndex =
-            AssetIndex.load(manifest.assetIndex?.download(assetsFolder.resolve("indexes")) ?: error("No asset index"))
+    private fun downloadLibraries(manifest: LauncherManifest, folder: File): LibraryData {
+        logger.info { "Downloading client jar" }
         val clientJar =
             manifest.downloads?.client?.download(
-                root.resolve("versions/${manifest.id}/${manifest.id}.jar"),
+                folder.resolve("net/minecraft/version/${manifest.id}/version-${manifest.id}.jar"),
                 strict = true
             ) ?: error("No client jar")
 
-        libraries.forEach {
-            it.asset?.download(librariesFolder)
+        logger.info { "Downloading libraries" }
+        manifest.libraries.filterMatchesRule().forEach {
+            it.asset?.download(folder)
             it.downloads?.classifiers?.let { classifiers ->
-                classifiers.linuxNatives?.download(librariesFolder)
-                classifiers.macosNatives?.download(librariesFolder)
-                classifiers.windowsNatives?.download(librariesFolder)
+                classifiers.linuxNatives?.download(folder)
+                classifiers.macosNatives?.download(folder)
+                classifiers.windowsNatives?.download(folder)
             }
         }
 
-        assetIndex.objects.entries.forEach { it.toAsset().download(assetsFolder.resolve("objects")) }
+        return LibraryData(clientJar, folder)
+    }
 
+    private fun downloadAssets(manifest: LauncherManifest, folder: File): File {
+        logger.info { "Downloading asset index" }
+        val assetIndex = AssetIndex.load(
+            manifest.assetIndex?.download(folder.resolve("indexes"))
+                ?: error("No asset index")
+        )
+
+        logger.info { "Downloading assets" }
+        assetIndex.objects.entries.forEach { it.toAsset().download(folder.resolve("objects")) }
+        return folder
+    }
+
+    suspend fun launch(manifest: LauncherManifest, root: File) {
+        logger.info { "Launching version: ${manifest.id}" }
+
+        val (clientJar, libraryFolder) = downloadLibraries(manifest, root.resolve("libraries"))
+        val assetsFolder = downloadAssets(manifest, root.resolve("assets"))
         val javaHome = downloadJava(manifest, root) ?: error("Failed to download Java")
 
+        logger.info { "Authenticating" }
+        val auth = AuthManager(root.resolve("auth")).login()
+
         val classpath = listOf(
-            *libraries.flatMap { it.assets }
-                .map { librariesFolder.resolve(it.path ?: "").absolutePath }
+            *manifest.libraries.filterMatchesRule()
+                .flatMap { it.assets }
+                .map { libraryFolder.resolve(it.path ?: "").absolutePath }
                 .toTypedArray(),
             clientJar.absolutePath
         ).joinToString(separator = ":")
 
-        val auth = AuthManager(root.resolve("auth")).login()
         val commandLine = listOf(
-            manifest.javaVersion?.getJavaPath(javaHome)?.absolutePath ?: error("No Java version"),
+            getJavaPath(javaHome)?.absolutePath ?: error("No Java version"),
             *manifest.arguments.jvm.toFilteredArray(),
             manifest.mainClass,
             *manifest.arguments.game.toFilteredArray()
@@ -77,16 +107,20 @@ object Launcher {
             )
         }
 
-        // TODO: Fix warnings
-        logger.info { "Launching Minecraft with arguments line: ${commandLine.joinToString(" ")}" }
-        val process = ProcessBuilder(commandLine)
-            .directory(root)
-            .inheritIO()
-            .start()
-        process.waitFor()
+        logger.info { "Launching Minecraft" }
+        logger.debug { "Command line: ${commandLine.joinToString(separator = " ")}" }
+
+        withContext(Dispatchers.IO) {
+            val process = ProcessBuilder(commandLine)
+                .directory(root)
+                .inheritIO()
+                .start()
+            process.waitFor()
+        }
     }
 
     private suspend fun downloadJava(manifest: LauncherManifest, root: File): File? {
+        logger.info { "Downloading java" }
         val javaVersion = manifest.javaVersion ?: return null
         val home = root.resolve("java/${javaVersion.component}/${javaVersion.majorVersion}")
 
@@ -98,15 +132,18 @@ object Launcher {
             when (data.type) {
                 JdkFile.Type.DIRECTORY -> {
                     val dir = home.resolve(path)
+                    logger.debug { "Creating directory: $dir" }
                     if (!dir.exists()) dir.mkdirs()
                 }
                 JdkFile.Type.FILE -> {
+                    logger.debug { "Downloading file: $path" }
                     val file = data.downloads?.raw?.download(home.resolve(path), strict = true) ?: return@forEach
                     if (data.executable == true) file.setExecutable(true)
                 }
                 JdkFile.Type.LINK -> {
                     val source = home.resolve(path).toPath()
                     val target = home.resolve(data.target ?: return@forEach).toPath()
+                    logger.debug { "Creating symlink: $source -> $target" }
 
                     if (Files.isSymbolicLink(source) || Files.isSymbolicLink(target)) return@forEach
                     Files.createSymbolicLink(source, target)
@@ -116,6 +153,11 @@ object Launcher {
 
         return home
     }
+
+    data class LibraryData(
+        val clientJar: File,
+        val folder: File
+    )
 }
 
 

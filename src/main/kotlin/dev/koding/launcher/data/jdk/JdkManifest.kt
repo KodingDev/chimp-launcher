@@ -19,8 +19,6 @@ data class JdkManifest(
     }
 }
 
-// Could do polymorphism but i'm lazy
-// maybe for the future
 @Serializable
 data class JdkFile(
     val type: Type,
