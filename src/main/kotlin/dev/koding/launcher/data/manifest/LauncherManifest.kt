@@ -12,20 +12,36 @@ import kotlinx.serialization.json.*
 @Serializable
 data class LauncherManifest(
     val arguments: LaunchArguments,
-    val assetIndex: Asset,
-    val assets: String,
-    val downloads: LaunchDownloads,
     val id: String,
-    val javaVersion: LaunchJavaVersion,
     val libraries: List<Library>,
-    val logging: LaunchLogging,
     val mainClass: String,
-    val type: String
+    val type: String,
+    val logging: LaunchLogging? = null,
+    val javaVersion: LaunchJavaVersion? = null,
+    val assets: String? = null,
+    val assetIndex: Asset? = null,
+    val downloads: LaunchDownloads? = null,
+    val inheritsFrom: String? = null
 ) {
     companion object {
         fun loadResource(resourceName: String): LauncherManifest {
             val resource = LauncherManifest::class.java.getResourceAsStream(resourceName)
-            return json.decodeFromStream(resource ?: error("Resource not found"))
+            val manifest = json.decodeFromStream<LauncherManifest>(resource ?: error("Resource not found"))
+
+            if (manifest.inheritsFrom != null) {
+                val sub = loadResource("/profiles/${manifest.inheritsFrom}.json")
+                return manifest.copy(
+                    arguments = manifest.arguments + sub.arguments,
+                    downloads = sub.downloads ?: manifest.downloads,
+                    libraries = manifest.libraries + sub.libraries,
+                    assetIndex = sub.assetIndex ?: manifest.assetIndex,
+                    assets = sub.assets ?: manifest.assets,
+                    javaVersion = sub.javaVersion ?: manifest.javaVersion,
+                    logging = sub.logging ?: manifest.logging
+                )
+            }
+
+            return manifest
         }
     }
 }
@@ -51,20 +67,32 @@ data class LaunchJavaVersion(
 
 @Serializable
 data class Library(
-    val downloads: LibraryDownloads,
     val name: String,
+    val url: String? = null,
+    val downloads: LibraryDownloads? = null,
     val rules: List<Rule> = emptyList()
-)
+) {
+    val asset: Asset?
+        get() = downloads?.artifact ?: url?.let { url ->
+            val path = name.split(":").let { "${it[0].replace(".", "/")}/${it[1]}/${it[2]}/${it[1]}-${it[2]}.jar" }
+            Asset("$url$path", path = path)
+        }
+
+    // TODO: This could be optimized but later
+    val assets = listOfNotNull(
+        asset,
+        downloads?.classifiers?.macosNatives,
+        downloads?.classifiers?.windowsNatives,
+        downloads?.classifiers?.linuxNatives
+    )
+}
 
 @Serializable
 data class LibraryDownloads(
     val artifact: Asset,
     val classifiers: LibraryClassifiers? = null,
     val natives: LibraryNatives? = null
-) {
-    // TODO: This could be optimized but later
-    val assets = listOfNotNull(artifact, classifiers?.macosNatives, classifiers?.windowsNatives, classifiers?.linuxNatives)
-}
+)
 
 @Serializable
 data class LibraryNatives(
@@ -91,7 +119,7 @@ data class LaunchDownloads(
 @Serializable
 data class Asset(
     val url: String,
-    val size: Long,
+    val size: Long? = null,
     val id: String? = null,
     val sha1: String? = null,
     val totalSize: Long? = null,

@@ -11,7 +11,7 @@ val logger = KotlinLogging.logger {}
 
 fun Asset.matches(file: File): Boolean {
     // Check if the size matches
-    if (Files.size(file.toPath()) != size) return false
+    if (size != null && Files.size(file.toPath()) != size) return false
 
     // Check if the SHA-1 matches
     if (sha1 != null && sha1 != file.sha1) return false
@@ -73,3 +73,9 @@ fun LaunchJavaVersion.getJavaPath(root: File) = when (OS.type) {
     OS.Type.LINUX -> root.resolve("bin/java")
     else -> throw IllegalStateException("Unsupported OS: ${OS.type}")
 }
+
+operator fun LaunchArguments.plus(other: LaunchArguments) =
+    LaunchArguments(
+        game = game.plus(other.game),
+        jvm = jvm.plus(other.jvm)
+    )

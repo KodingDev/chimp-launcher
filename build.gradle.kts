@@ -1,11 +1,13 @@
 // fuck it.
 // crab in the code. 🦀
 
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.6.0"
     kotlin("plugin.serialization") version "1.5.31"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
     java
 }
 
@@ -34,4 +36,10 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "1.8"
         freeCompilerArgs = freeCompilerArgs + arrayOf("-Xopt-in=kotlin.RequiresOptIn")
     }
+}
+
+tasks.withType<Jar> {
+    manifest.attributes(
+        "Main-Class" to "dev.koding.launcher.LauncherKt"
+    )
 }

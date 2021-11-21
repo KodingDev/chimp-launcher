@@ -24,16 +24,17 @@ object Launcher {
         val librariesFolder = root.resolve("libraries")
         val assetsFolder = root.resolve("assets")
 
-        val assetIndex = AssetIndex.load(manifest.assetIndex.download(assetsFolder.resolve("indexes")))
+        val assetIndex =
+            AssetIndex.load(manifest.assetIndex?.download(assetsFolder.resolve("indexes")) ?: error("No asset index"))
         val clientJar =
-            manifest.downloads.client.download(
+            manifest.downloads?.client?.download(
                 root.resolve("versions/${manifest.id}/${manifest.id}.jar"),
                 strict = true
-            )
+            ) ?: error("No client jar")
 
         libraries.forEach {
-            it.downloads.artifact.download(librariesFolder)
-            it.downloads.classifiers?.let { classifiers ->
+            it.asset?.download(librariesFolder)
+            it.downloads?.classifiers?.let { classifiers ->
                 classifiers.linuxNatives?.download(librariesFolder)
                 classifiers.macosNatives?.download(librariesFolder)
                 classifiers.windowsNatives?.download(librariesFolder)
@@ -45,7 +46,7 @@ object Launcher {
         val javaHome = downloadJava(manifest, root) ?: error("Failed to download Java")
 
         val classpath = listOf(
-            *libraries.flatMap { it.downloads.assets }
+            *libraries.flatMap { it.assets }
                 .map { librariesFolder.resolve(it.path ?: "").absolutePath }
                 .toTypedArray(),
             clientJar.absolutePath
@@ -53,7 +54,7 @@ object Launcher {
 
         val auth = AuthManager(root.resolve("auth")).login()
         val commandLine = listOf(
-            manifest.javaVersion.getJavaPath(javaHome).absolutePath,
+            manifest.javaVersion?.getJavaPath(javaHome)?.absolutePath ?: error("No Java version"),
             *manifest.arguments.jvm.toFilteredArray(),
             manifest.mainClass,
             *manifest.arguments.game.toFilteredArray()
@@ -68,7 +69,7 @@ object Launcher {
                 "version_name" to manifest.id,
                 "game_directory" to root.absolutePath, // TODO: Change this
                 "assets_root" to assetsFolder.absolutePath,
-                "assets_index_name" to manifest.assets,
+                "assets_index_name" to (manifest.assets ?: error("No assets index")),
                 "auth_uuid" to auth.profile.id,
                 "auth_access_token" to auth.token.accessToken,
                 "user_type" to "mojang",
@@ -86,10 +87,11 @@ object Launcher {
     }
 
     private suspend fun downloadJava(manifest: LauncherManifest, root: File): File? {
-        val home = root.resolve("java/${manifest.javaVersion.component}/${manifest.javaVersion.majorVersion}")
+        val javaVersion = manifest.javaVersion ?: return null
+        val home = root.resolve("java/${javaVersion.component}/${javaVersion.majorVersion}")
 
         val runtime = JavaRuntime.load().select()
-        val runtimeData = runtime?.get(manifest.javaVersion.component)?.match(manifest.javaVersion) ?: return null
+        val runtimeData = runtime?.get(javaVersion.component)?.match(javaVersion) ?: return null
 
         val jdkManifest = JdkManifest.load(runtimeData.manifest.download(home))
         jdkManifest.files.forEach { (path, data) ->
