@@ -1,6 +1,7 @@
 package dev.koding.launcher.loader
 
 import dev.koding.launcher.Launcher
+import dev.koding.launcher.LauncherFrame
 import dev.koding.launcher.data.config.ProfileConfig
 import dev.koding.launcher.data.config.ProfileFile
 import dev.koding.launcher.data.manifest.LaunchArgument
@@ -17,11 +18,20 @@ class ProfileLoader(private val config: ProfileConfig) {
     suspend fun load() {
         logger.info { "Loading profile: ${config.name}" }
         logger.info { "Loading resources" }
-        config.resources.forEach { resourceManager.load(it) }
 
+        LauncherFrame.update("Loading resources")
+        config.resources.forEachIndexed { i, it ->
+            LauncherFrame.updateProgress(i, config.resources.size)
+            resourceManager.load(it)
+        }
+
+        LauncherFrame.update("Loading files")
         logger.info { "Loading files" }
+
         config.files.forEach { (path, data) ->
+            LauncherFrame.updateProgress(config.files.size, config.files.size)
             val file = profileHome.resolve(path)
+
             when (data.action) {
                 ProfileFile.Action.COPY -> {
                     val resource = data.resource?.let { resourceManager[it] } ?: return@forEach

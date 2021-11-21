@@ -53,7 +53,7 @@ object InputUtil {
             add(jpf)
         }
 
-        val dialog = JOptionPane.showConfirmDialog(null, box, "Input", JOptionPane.OK_CANCEL_OPTION)
+        val dialog = JOptionPane.showConfirmDialog(null, box, "Chimp Launcher", JOptionPane.OK_CANCEL_OPTION)
         return if (dialog == JOptionPane.OK_OPTION) jpf.password.concatToString() else null
     }
 
@@ -61,7 +61,7 @@ object InputUtil {
         JOptionPane.showOptionDialog(
             null,
             prompt,
-            "Input",
+            "Chimp Launcher",
             JOptionPane.DEFAULT_OPTION,
             JOptionPane.QUESTION_MESSAGE,
             null,
