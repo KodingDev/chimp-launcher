@@ -17,6 +17,7 @@ import dev.koding.launcher.data.runtime.match
 import dev.koding.launcher.data.runtime.select
 import dev.koding.launcher.loader.ProfileLoader
 import dev.koding.launcher.util.InputUtil
+import dev.koding.launcher.util.extractZip
 import dev.koding.launcher.util.replaceParams
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -61,11 +62,7 @@ object Launcher {
         libraries.forEachIndexed { index, it ->
             LauncherFrame.updateProgress(index, libraries.size)
             it.asset?.download(folder)
-            it.downloads?.classifiers?.let { classifiers ->
-                classifiers.linuxNatives?.download(folder)
-                classifiers.macosNatives?.download(folder)
-                classifiers.windowsNatives?.download(folder)
-            }
+            it.native?.download(folder)
         }
 
         return LibraryData(clientJar, folder)
@@ -130,6 +127,21 @@ object Launcher {
         return home
     }
 
+    private fun setupNatives(manifest: LauncherManifest, libraryFolder: File, root: File): File {
+        logger.info { "Setting up natives" }
+        val natives = manifest.libraries.filterMatchesRule().mapNotNull { it.native }
+
+        if (root.exists()) root.deleteRecursively()
+        root.mkdirs()
+
+        natives.forEach {
+            logger.debug { "Extracting natives: ${it.path} -> ${root.absolutePath}" }
+            it.getLocation(libraryFolder).extractZip(root)
+        }
+
+        return root
+    }
+
     suspend fun launch(manifest: LauncherManifest, gameDir: File) {
         logger.info { "Launching version: ${manifest.id}" }
 
@@ -142,6 +154,8 @@ object Launcher {
         logger.info { "Authenticating" }
         val auth = AuthManager(launcherHome.resolve("auth")).login()
 
+        val nativesFolder =
+            setupNatives(manifest, libraryFolder, libraryFolder.resolve("net/minecraft/natives/${manifest.id}"))
         val classpath = listOf(
             *manifest.libraries.filterMatchesRule()
                 .flatMap { it.assets }
@@ -152,12 +166,15 @@ object Launcher {
 
         val commandLine = listOf(
             getJavaPath(javaHome).absolutePath ?: error("No Java version"),
-            *manifest.arguments.jvm.toFilteredArray(),
+            *manifest.arguments?.jvm?.toFilteredArray()?.takeUnless { it.isEmpty() }
+                ?: arrayOf("-Djava.library.path=\${natives_directory}", "-cp", "\${classpath}"),
             manifest.mainClass,
-            *manifest.arguments.game.toFilteredArray(),
+            *(manifest.arguments?.game?.toFilteredArray()?.takeUnless { it.isEmpty() }
+                ?: manifest.minecraftArguments?.split(" ")?.toTypedArray()
+                ?: emptyArray()),
         ).map {
             it.replaceParams(
-                "natives_directory" to ".",
+                "natives_directory" to nativesFolder.absolutePath,
                 "launcher_name" to "chimp-launcher",
                 "launcher_version" to "1.0.0",
                 "classpath" to classpath,
@@ -170,7 +187,8 @@ object Launcher {
                 "auth_uuid" to auth.profile.id,
                 "auth_access_token" to auth.token.accessToken,
                 "user_type" to "mojang",
-                "version_type" to manifest.type
+                "version_type" to manifest.type,
+                "user_properties" to "{}"
             )
         }
 

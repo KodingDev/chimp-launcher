@@ -3,6 +3,7 @@
 package dev.koding.launcher.data.manifest
 
 import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.util.OS
 import dev.koding.launcher.util.json
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -12,11 +13,12 @@ import kotlinx.serialization.json.*
 
 @Serializable
 data class LauncherManifest(
-    val arguments: LaunchArguments,
     val id: String,
     val libraries: List<Library>,
     val mainClass: String,
     val type: String,
+    val minecraftArguments: String? = null,
+    val arguments: LaunchArguments? = null,
     val logging: LaunchLogging? = null,
     val javaVersion: LaunchJavaVersion? = null,
     val assets: String? = null,
@@ -32,7 +34,7 @@ data class LauncherManifest(
             if (manifest.inheritsFrom != null) {
                 val sub = resourceManager.getManifest("profile:${manifest.inheritsFrom}")
                 return manifest.copy(
-                    arguments = manifest.arguments + sub.arguments,
+                    arguments = (manifest.arguments ?: LaunchArguments()) + (sub.arguments ?: LaunchArguments()),
                     downloads = sub.downloads ?: manifest.downloads,
                     libraries = manifest.libraries + sub.libraries,
                     assetIndex = sub.assetIndex ?: manifest.assetIndex,
@@ -71,7 +73,8 @@ data class Library(
     val name: String,
     val url: String? = null,
     val downloads: LibraryDownloads? = null,
-    val rules: List<Rule> = emptyList()
+    val rules: List<Rule> = emptyList(),
+    val natives: Map<String, String> = emptyMap()
 ) {
     val asset: Asset?
         get() = downloads?.artifact ?: url?.let { url ->
@@ -79,19 +82,14 @@ data class Library(
             Asset("$url$path", path = path)
         }
 
-    val assets = listOfNotNull(
-        asset,
-        downloads?.classifiers?.macosNatives,
-        downloads?.classifiers?.windowsNatives,
-        downloads?.classifiers?.linuxNatives
-    )
+    val assets = listOfNotNull(asset, *(downloads?.classifiers?.values?.toTypedArray() ?: emptyArray()))
+    val native = OS.type.names.mapNotNull { natives[it] }.firstOrNull()?.let { downloads?.classifiers?.get(it) }
 }
 
 @Serializable
 data class LibraryDownloads(
-    val artifact: Asset,
-    val classifiers: LibraryClassifiers? = null,
-    val natives: LibraryNatives? = null
+    val artifact: Asset? = null,
+    val classifiers: Map<String, Asset> = emptyMap()
 )
 
 @Serializable
@@ -99,13 +97,6 @@ data class LibraryNatives(
     val windows: String? = null,
     val linux: String? = null,
     val macos: String? = null
-)
-
-@Serializable
-data class LibraryClassifiers(
-    @SerialName("natives-linux") val linuxNatives: Asset? = null,
-    @SerialName("natives-macos") val macosNatives: Asset? = null,
-    @SerialName("natives-windows") val windowsNatives: Asset? = null
 )
 
 // Server stuff isn't needed, nor mappings

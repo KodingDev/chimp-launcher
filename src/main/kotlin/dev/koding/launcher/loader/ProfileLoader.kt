@@ -52,8 +52,9 @@ class ProfileLoader(private val config: ProfileConfig) {
         val manifest = resourceManager.getManifest(config.launch.profile)
         Launcher.launch(
             manifest.copy(
-                arguments = manifest.arguments + LaunchArguments(game =
-                config.launch.arguments.map { LaunchArgument(it) })
+                arguments = (manifest.arguments ?: LaunchArguments()) + LaunchArguments(game =
+                config.launch.arguments.map { LaunchArgument(it) }),
+                minecraftArguments = manifest.minecraftArguments + config.launch.arguments.joinToString(separator = " ")
             ), profileHome
         )
     }

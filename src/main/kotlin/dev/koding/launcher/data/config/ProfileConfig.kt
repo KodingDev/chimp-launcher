@@ -17,7 +17,7 @@ data class ProfileConfig(
     val name: String,
     val launch: LaunchConfig,
     val resources: List<ProfileResource> = emptyList(),
-    val files: Map<String, ProfileFile>
+    val files: Map<String, ProfileFile> = emptyMap()
 ) {
     companion object {
         // Needs to be this way because of the Gist content type

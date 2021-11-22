@@ -19,10 +19,15 @@ fun Asset.matches(file: File): Boolean {
     return true
 }
 
+fun Asset.getLocation(root: File, strict: Boolean = false): File {
+    val url = URL(this.url)
+    return if (strict) root
+    else root.resolve(path ?: url.file.split("/").last())
+}
+
 fun Asset.download(root: File, strict: Boolean = false): File {
     val url = URL(this.url)
-    val destination = if (strict) root
-    else root.resolve(path ?: url.file.split("/").last())
+    val destination = getLocation(root, strict)
 
     // Check if the file already exists
     if (destination.exists() && matches(destination)) {
@@ -46,7 +51,7 @@ fun Asset.download(root: File, strict: Boolean = false): File {
 
 fun Rule.matches(): Boolean {
     if (os != null) {
-        if (os.name != null && os.name != OS.name) return false
+        if (os.name != null && OS.type.names.none { it == os.name }) return false
         if (os.version != null && OS.version.matches(os.version.toRegex())) return false
         if (os.arch != null && os.arch != OS.arch) return false
     }

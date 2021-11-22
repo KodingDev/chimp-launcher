@@ -13,7 +13,10 @@ fun JavaRuntime.select() = when {
 
 fun List<JavaRuntimeData>.match(versionData: LaunchJavaVersion) =
     filter {
-        val version = it.version.name.split("_").first().split(".")
+        val rawVersion = it.version.name.split("_").first()
+        val version = if ("." in rawVersion) rawVersion.split(".")
+        else rawVersion.split("u")
+
         if (versionData.majorVersion != version[0].toIntOrNull()) return@filter false
         true
     }.firstOrNull()

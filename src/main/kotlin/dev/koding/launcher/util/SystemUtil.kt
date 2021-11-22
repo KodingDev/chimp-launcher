@@ -6,6 +6,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
 import java.security.MessageDigest
+import java.util.zip.ZipFile
 import javax.swing.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -18,12 +19,32 @@ val File.sha1: String
         return digest.fold("") { str, it -> str + "%02x".format(it) }
     }
 
+fun File.extractZip(destination: File) {
+    if (!exists()) return
+    val zipFile = ZipFile(this)
+    val entries = zipFile.entries()
+
+    while (entries.hasMoreElements()) {
+        val entry = entries.nextElement()
+        val entryName = entry.name
+        if (entryName.endsWith("/")) {
+            destination.resolve(entryName).mkdirs()
+        } else {
+            val inputStream = zipFile.getInputStream(entry)
+            val outputStream = destination.resolve(entryName).outputStream()
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+            outputStream.close()
+        }
+    }
+}
+
 object OS {
-    enum class Type {
-        WINDOWS,
-        LINUX,
-        MAC,
-        UNKNOWN
+    enum class Type(val names: Array<String>) {
+        WINDOWS(arrayOf("windows")),
+        LINUX(arrayOf("linux")),
+        MAC(arrayOf("osx", "macos")),
+        UNKNOWN(emptyArray())
     }
 
     val type: Type
