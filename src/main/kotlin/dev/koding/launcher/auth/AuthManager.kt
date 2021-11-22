@@ -1,24 +1,17 @@
 package dev.koding.launcher.auth
 
-import dev.koding.launcher.util.InputUtil
 import dev.koding.launcher.util.json
+import dev.koding.launcher.util.system.SwingUtil
+import dev.koding.launcher.util.toJson
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import java.io.File
 
 @Serializable
 sealed class AuthData {
-    companion object {
-        fun fromJson(text: String) = json.decodeFromString<AuthData>(text)
-    }
-
     abstract val profile: MinecraftAPI.MinecraftProfile
     abstract val token: MinecraftToken
-
-    fun toJson() = json.encodeToString(this)
 }
 
 @Serializable
@@ -57,7 +50,7 @@ class AuthManager(root: File) {
         logger.debug { "Current auth data: $current" }
 
         val provider = current?.getProvider()
-            ?: when (InputUtil.askSelection("Select an account type", "Microsoft", "Mojang")) {
+            ?: when (SwingUtil.askSelection("Select an account type", "Microsoft", "Mojang")) {
                 "Microsoft" -> MicrosoftAuthProvider()
                 "Mojang" -> MojangAuthProvider()
                 else -> throw IllegalArgumentException("Invalid selection")
@@ -73,7 +66,7 @@ class AuthManager(root: File) {
 
     private fun getCurrentData(): AuthData? {
         if (!authFile.parentFile.exists()) authFile.parentFile.mkdirs()
-        return if (authFile.exists()) AuthData.fromJson(authFile.readText()) else null
+        return if (authFile.exists()) authFile.json() else null
     }
 
     private fun AuthData.getProvider() = when (this) {

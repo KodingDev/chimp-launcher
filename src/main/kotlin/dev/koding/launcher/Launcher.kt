@@ -6,7 +6,6 @@ import com.formdev.flatlaf.FlatDarkLaf
 import dev.koding.launcher.auth.AuthManager
 import dev.koding.launcher.data.assets.AssetIndex
 import dev.koding.launcher.data.assets.toAsset
-import dev.koding.launcher.data.config.ProfileConfig
 import dev.koding.launcher.data.jdk.JdkFile
 import dev.koding.launcher.data.jdk.JdkManifest
 import dev.koding.launcher.data.launcher.LocalConfig
@@ -16,9 +15,12 @@ import dev.koding.launcher.data.runtime.JavaRuntime
 import dev.koding.launcher.data.runtime.match
 import dev.koding.launcher.data.runtime.select
 import dev.koding.launcher.loader.ProfileLoader
-import dev.koding.launcher.util.InputUtil
-import dev.koding.launcher.util.extractZip
+import dev.koding.launcher.util.fromUrl
+import dev.koding.launcher.util.json
+import dev.koding.launcher.util.readResource
 import dev.koding.launcher.util.replaceParams
+import dev.koding.launcher.util.system.SwingUtil
+import dev.koding.launcher.util.system.extractZip
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import mu.KotlinLogging
@@ -70,10 +72,8 @@ object Launcher {
     private suspend fun downloadAssets(manifest: LauncherManifest, folder: File): File {
         LauncherFrame.update("Downloading asset index", 0)
         logger.info { "Downloading asset index" }
-        val assetIndex = AssetIndex.load(
-            manifest.assetIndex?.download(folder.resolve("indexes"))
-                ?: error("No asset index")
-        )
+        val assetIndex = manifest.assetIndex?.download(folder.resolve("indexes"))?.json<AssetIndex>()
+            ?: error("No asset index")
 
         LauncherFrame.update("Downloading assets", 0)
         logger.info { "Downloading assets" }
@@ -96,10 +96,10 @@ object Launcher {
         val javaVersion = manifest.javaVersion ?: return null
         val home = root.resolve("java/${javaVersion.component}/${javaVersion.majorVersion}")
 
-        val runtime = JavaRuntime.load().select()
+        val runtime = JavaRuntime.fetch().select()
         val runtimeData = runtime?.get(javaVersion.component)?.match(javaVersion) ?: return null
 
-        val jdkManifest = JdkManifest.load(runtimeData.manifest.download(home))
+        val jdkManifest = runtimeData.manifest.download(home).json<JdkManifest>()
         jdkManifest.files.entries.forEachIndexed { i, (path, data) ->
             LauncherFrame.updateProgress(i, jdkManifest.files.size)
             when (data.type) {
@@ -279,12 +279,12 @@ suspend fun main() {
     LauncherFrame.create()
     LauncherFrame.update("Loading profiles")
 
-    val config = RemoteConfig.fromUrl(LocalConfig.load().config)
-    val choice = InputUtil.askSelection("Select a profile", *config.profiles.map { it.name }.toTypedArray())
+    val config = readResource<LocalConfig>("/config.json")?.config?.fromUrl<RemoteConfig>() ?: return
+    val choice = SwingUtil.askSelection("Select a profile", *config.profiles.map { it.name }.toTypedArray())
         ?: exitProcess(0)
 
     val profile = config.profiles.firstOrNull { it.name == choice } ?: error("Invalid profile")
-    val loader = ProfileLoader(ProfileConfig.fromUrl(profile.url))
+    val loader = ProfileLoader(profile.url.fromUrl())
 
     loader.load()
     loader.start()

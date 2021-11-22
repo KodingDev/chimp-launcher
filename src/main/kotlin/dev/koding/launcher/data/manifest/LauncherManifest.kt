@@ -3,8 +3,8 @@
 package dev.koding.launcher.data.manifest
 
 import dev.koding.launcher.loader.ResourceManager
-import dev.koding.launcher.util.OS
 import dev.koding.launcher.util.json
+import dev.koding.launcher.util.system.OS
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -28,8 +28,8 @@ data class LauncherManifest(
 ) {
     companion object {
         fun load(resourceManager: ResourceManager, name: String): LauncherManifest {
-            val resource = resourceManager[name]?.file?.inputStream() ?: error("Invalid resource")
-            val manifest = json.decodeFromStream<LauncherManifest>(resource)
+            val resource = resourceManager[name]?.file ?: error("Invalid resource")
+            val manifest = resource.json<LauncherManifest>()
 
             if (manifest.inheritsFrom != null) {
                 val sub = resourceManager.getManifest("profile:${manifest.inheritsFrom}")
@@ -61,7 +61,6 @@ data class LoggingConfig(
     val type: String
 )
 
-// TODO: Add minor version, etc
 @Serializable
 data class LaunchJavaVersion(
     val component: String,
@@ -76,7 +75,7 @@ data class Library(
     val rules: List<Rule> = emptyList(),
     val natives: Map<String, String> = emptyMap()
 ) {
-    val asset: Asset?
+    private val asset: Asset?
         get() = downloads?.artifact ?: url?.let { url ->
             val path = name.split(":").let { "${it[0].replace(".", "/")}/${it[1]}/${it[2]}/${it[1]}-${it[2]}.jar" }
             Asset("$url$path", path = path)
@@ -90,13 +89,6 @@ data class Library(
 data class LibraryDownloads(
     val artifact: Asset? = null,
     val classifiers: Map<String, Asset> = emptyMap()
-)
-
-@Serializable
-data class LibraryNatives(
-    val windows: String? = null,
-    val linux: String? = null,
-    val macos: String? = null
 )
 
 // Server stuff isn't needed, nor mappings

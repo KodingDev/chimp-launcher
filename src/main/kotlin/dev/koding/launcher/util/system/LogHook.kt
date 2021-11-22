@@ -1,7 +1,6 @@
-package dev.koding.launcher.util
+package dev.koding.launcher.util.system
 
 import dev.koding.launcher.LauncherFrame
-import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.Filter
 import org.apache.logging.log4j.core.Layout
 import org.apache.logging.log4j.core.LogEvent
@@ -17,9 +16,9 @@ import java.io.Serializable
 @Suppress("unused")
 @Plugin(name = "LogDisplay", category = "Core", elementType = "appender", printObject = true)
 class LogHook(
-    name: String?,
+    name: String,
     filter: Filter?,
-    layout: Layout<out Serializable>?,
+    layout: Layout<out Serializable>,
     ignoreExceptions: Boolean
 ) : AbstractAppender(name, filter, layout, ignoreExceptions, emptyArray()) {
     companion object {
@@ -39,7 +38,6 @@ class LogHook(
     }
 
     override fun append(event: LogEvent) {
-        if (!event.level.isLessSpecificThan(Level.INFO)) return
         LauncherFrame.log(layout.toByteArray(event).toString(Charsets.UTF_8))
     }
 }

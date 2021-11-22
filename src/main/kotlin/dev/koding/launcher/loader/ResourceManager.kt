@@ -5,10 +5,9 @@ import dev.koding.launcher.data.config.ProfileResource
 import dev.koding.launcher.data.config.UrlResource
 import dev.koding.launcher.data.manifest.LauncherManifest
 import dev.koding.launcher.util.json
+import dev.koding.launcher.util.toJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import java.io.File
 import java.net.URL
@@ -42,18 +41,12 @@ class ResourceManager {
         resource.saveManifest(data)
     }
 
-    private fun Resource.saveManifest(resource: ProfileResource) {
-        file.parentFile.resolve("${file.name}.manifest")
-            .writeText(json.encodeToString(resource))
-    }
+    private fun Resource.saveManifest(resource: ProfileResource) =
+        file.parentFile.resolve("${file.name}.manifest").writeText(resource.toJson())
 
     private fun Resource.getManifest(): ProfileResource? {
         val manifest = file.parentFile.resolve("${file.name}.manifest")
-        return if (manifest.exists()) {
-            json.decodeFromString<ProfileResource>(manifest.readText())
-        } else {
-            null
-        }
+        return manifest.takeIf { it.exists() }?.json()
     }
 
     operator fun get(name: String) = resources[name]

@@ -2,13 +2,12 @@
 
 package dev.koding.launcher.auth
 
-import dev.koding.launcher.util.InputUtil
 import dev.koding.launcher.util.json
+import dev.koding.launcher.util.system.SwingUtil
 import io.ktor.client.features.*
-import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.util.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.decodeFromStream
 import mu.KotlinLogging
 import java.awt.BorderLayout
 import java.awt.Component
@@ -79,8 +78,8 @@ class MojangAuthProvider : AuthProvider() {
             MinecraftAPI.login(username.text, password.password.concatToString())
         } catch (e: Exception) {
             if (e is ClientRequestException) {
-                val error = json.decodeFromStream<MojangAuthError>(e.response.content.toInputStream())
-                InputUtil.showError("Error logging in", "${error.error}: ${error.errorMessage}")
+                val error = e.response.content.toByteArray().decodeToString().json<MojangAuthError>()
+                SwingUtil.showError("Error logging in", "${error.error}: ${error.errorMessage}")
             }
 
             logger.error(e) { "Failed to login with Mojang" }

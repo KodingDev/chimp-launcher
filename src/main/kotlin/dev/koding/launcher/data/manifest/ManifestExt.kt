@@ -1,7 +1,7 @@
 package dev.koding.launcher.data.manifest
 
-import dev.koding.launcher.util.OS
-import dev.koding.launcher.util.sha1
+import dev.koding.launcher.util.system.OS
+import dev.koding.launcher.util.system.sha1
 import mu.KotlinLogging
 import java.io.File
 import java.net.URL

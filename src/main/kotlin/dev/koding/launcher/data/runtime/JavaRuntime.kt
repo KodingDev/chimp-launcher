@@ -1,8 +1,7 @@
 package dev.koding.launcher.data.runtime
 
 import dev.koding.launcher.data.manifest.Asset
-import dev.koding.launcher.util.httpClient
-import io.ktor.client.request.*
+import dev.koding.launcher.util.fromUrl
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -16,8 +15,8 @@ data class JavaRuntime(
     @SerialName("windows-x86") val windows32: JavaConfigs
 ) {
     companion object {
-        suspend fun load() =
-            httpClient.get<JavaRuntime>("https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json")
+        suspend fun fetch() =
+            "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json".fromUrl<JavaRuntime>()
     }
 }
 

@@ -1,4 +1,4 @@
-<Configuration packages="dev.koding.launcher.util">
+<Configuration packages="dev.koding.launcher.util.system">
     <Appenders>
         <LogDisplay name="LogDisplay">
             <PatternLayout

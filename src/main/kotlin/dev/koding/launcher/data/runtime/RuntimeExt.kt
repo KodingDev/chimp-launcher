@@ -1,7 +1,7 @@
 package dev.koding.launcher.data.runtime
 
 import dev.koding.launcher.data.manifest.LaunchJavaVersion
-import dev.koding.launcher.util.OS
+import dev.koding.launcher.util.system.OS
 
 fun JavaRuntime.select() = when {
     OS.type == OS.Type.WINDOWS && OS.arch == "x86" -> windows32
