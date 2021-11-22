@@ -1,8 +1,14 @@
 package dev.koding.launcher.util
 
+import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.io.File
 import java.security.MessageDigest
-import javax.swing.JOptionPane
+import javax.swing.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 val File.sha1: String
@@ -46,15 +52,42 @@ object InputUtil {
     fun showError(title: String, message: String) =
         JOptionPane.showMessageDialog(null, message, title, JOptionPane.ERROR_MESSAGE)
 
-    fun askSelection(prompt: String, vararg options: String) =
-        JOptionPane.showOptionDialog(
-            null,
-            prompt,
-            "Chimp Launcher",
-            JOptionPane.DEFAULT_OPTION,
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            options,
-            options[0]
-        )
+    suspend fun askSelection(prompt: String, vararg options: String) =
+        suspendCoroutine<String?> { cont ->
+            JFrame("Chimp Launcher").apply frame@{
+                setSize(300, 120)
+                setLocationRelativeTo(null)
+
+                contentPane = JPanel().apply {
+                    val selection = JComboBox(options).apply { alignmentX = Component.CENTER_ALIGNMENT }
+
+                    border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+
+                    add(JLabel(prompt).apply { alignmentX = Component.CENTER_ALIGNMENT })
+                    add(Box.createVerticalStrut(5))
+                    add(selection)
+                    add(Box.createVerticalStrut(5))
+
+                    add(JPanel().apply {
+                        alignmentX = Component.CENTER_ALIGNMENT
+                        layout = BorderLayout()
+
+                        add(JButton("Select").apply {
+                            addActionListener {
+                                cont.resume(selection.selectedItem?.toString() ?: return@addActionListener)
+                                this@frame.isVisible = false
+                            }
+                        }, BorderLayout.CENTER)
+                    })
+                }
+
+                addWindowListener(object : WindowAdapter() {
+                    override fun windowClosing(e: WindowEvent?) {
+                        cont.resume(null)
+                    }
+                })
+                isVisible = true
+            }
+        }
 }

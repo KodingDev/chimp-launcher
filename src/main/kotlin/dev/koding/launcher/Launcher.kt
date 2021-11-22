@@ -9,12 +9,14 @@ import dev.koding.launcher.data.assets.toAsset
 import dev.koding.launcher.data.config.ProfileConfig
 import dev.koding.launcher.data.jdk.JdkFile
 import dev.koding.launcher.data.jdk.JdkManifest
-import dev.koding.launcher.data.local.LocalConfig
+import dev.koding.launcher.data.launcher.LocalConfig
+import dev.koding.launcher.data.launcher.RemoteConfig
 import dev.koding.launcher.data.manifest.*
 import dev.koding.launcher.data.runtime.JavaRuntime
 import dev.koding.launcher.data.runtime.match
 import dev.koding.launcher.data.runtime.select
 import dev.koding.launcher.loader.ProfileLoader
+import dev.koding.launcher.util.InputUtil
 import dev.koding.launcher.util.replaceParams
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -29,6 +31,7 @@ import java.io.File
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import javax.swing.*
+import kotlin.system.exitProcess
 
 object Launcher {
 
@@ -254,10 +257,16 @@ suspend fun main() {
     System.setProperty("apple.awt.application.name", "Chimp Launcher")
     System.setProperty("apple.awt.application.appearance", "system")
     FlatDarkLaf.setup()
-
     LauncherFrame.create()
-    val config = LocalConfig.load()
-    val loader = ProfileLoader(ProfileConfig.fromUrl(config.profile))
+    LauncherFrame.update("Loading profiles")
+
+    val config = RemoteConfig.fromUrl(LocalConfig.load().config)
+    val choice = InputUtil.askSelection("Select a profile", *config.profiles.map { it.name }.toTypedArray())
+        ?: exitProcess(0)
+
+    val profile = config.profiles.firstOrNull { it.name == choice } ?: error("Invalid profile")
+    val loader = ProfileLoader(ProfileConfig.fromUrl(profile.url))
+
     loader.load()
     loader.start()
 }

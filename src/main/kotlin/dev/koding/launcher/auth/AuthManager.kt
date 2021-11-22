@@ -58,8 +58,8 @@ class AuthManager(root: File) {
 
         val provider = current?.getProvider()
             ?: when (InputUtil.askSelection("Select an account type", "Microsoft", "Mojang")) {
-                0 -> MicrosoftAuthProvider()
-                1 -> MojangAuthProvider()
+                "Microsoft" -> MicrosoftAuthProvider()
+                "Mojang" -> MojangAuthProvider()
                 else -> throw IllegalArgumentException("Invalid selection")
             }
 
