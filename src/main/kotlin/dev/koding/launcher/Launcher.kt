@@ -2,6 +2,7 @@
 
 package dev.koding.launcher
 
+import com.formdev.flatlaf.FlatDarkLaf
 import dev.koding.launcher.auth.AuthManager
 import dev.koding.launcher.data.assets.AssetIndex
 import dev.koding.launcher.data.assets.toAsset
@@ -23,9 +24,10 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.config.Configurator
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.Toolkit
+import java.awt.Taskbar
 import java.io.File
 import java.nio.file.Files
+import javax.imageio.ImageIO
 import javax.swing.*
 
 object Launcher {
@@ -88,65 +90,6 @@ object Launcher {
         return folder
     }
 
-    suspend fun launch(manifest: LauncherManifest, gameDir: File) {
-        logger.info { "Launching version: ${manifest.id}" }
-
-        val launcherHome = home.resolve("launcher")
-        val (clientJar, libraryFolder) = downloadLibraries(manifest, launcherHome.resolve("libraries"))
-        val assetsFolder = downloadAssets(manifest, launcherHome.resolve("assets"))
-        val javaHome = downloadJava(manifest, launcherHome) ?: error("Failed to download Java")
-
-        LauncherFrame.update("Authenticating", 0)
-        logger.info { "Authenticating" }
-        val auth = AuthManager(launcherHome.resolve("auth")).login()
-
-        val classpath = listOf(
-            *manifest.libraries.filterMatchesRule()
-                .flatMap { it.assets }
-                .map { libraryFolder.resolve(it.path ?: "").absolutePath }
-                .toTypedArray(),
-            clientJar.absolutePath
-        ).joinToString(separator = ":")
-
-        val commandLine = listOf(
-            getJavaPath(javaHome).absolutePath ?: error("No Java version"),
-            *manifest.arguments.jvm.toFilteredArray(),
-            manifest.mainClass,
-            *manifest.arguments.game.toFilteredArray()
-        ).map {
-            it.replaceParams(
-                "natives_directory" to ".",
-                "launcher_name" to "chimp-launcher",
-                "launcher_version" to "1.0.0",
-                "classpath" to classpath,
-
-                "auth_player_name" to auth.profile.name,
-                "version_name" to manifest.id,
-                "game_directory" to gameDir,
-                "assets_root" to assetsFolder.absolutePath,
-                "assets_index_name" to (manifest.assets ?: error("No assets index")),
-                "auth_uuid" to auth.profile.id,
-                "auth_access_token" to auth.token.accessToken,
-                "user_type" to "mojang",
-                "version_type" to manifest.type
-            )
-        }
-
-        logger.info { "Launching Minecraft" }
-        logger.debug { "Command line: ${commandLine.joinToString(separator = " ")}" }
-
-        LauncherFrame.cleanup()
-        if (!gameDir.exists()) gameDir.mkdirs()
-
-        withContext(Dispatchers.IO) {
-            val process = ProcessBuilder(commandLine)
-                .directory(gameDir)
-                .inheritIO()
-                .start()
-            process.waitFor()
-        }
-    }
-
     private suspend fun downloadJava(manifest: LauncherManifest, root: File): File? {
         LauncherFrame.update("Downloading Java", 0)
         logger.info { "Downloading java" }
@@ -184,6 +127,65 @@ object Launcher {
         return home
     }
 
+    suspend fun launch(manifest: LauncherManifest, gameDir: File) {
+        logger.info { "Launching version: ${manifest.id}" }
+
+        val launcherHome = home.resolve("launcher")
+        val (clientJar, libraryFolder) = downloadLibraries(manifest, launcherHome.resolve("libraries"))
+        val assetsFolder = downloadAssets(manifest, launcherHome.resolve("assets"))
+        val javaHome = downloadJava(manifest, launcherHome) ?: error("Failed to download Java")
+
+        LauncherFrame.update("Authenticating", 0)
+        logger.info { "Authenticating" }
+        val auth = AuthManager(launcherHome.resolve("auth")).login()
+
+        val classpath = listOf(
+            *manifest.libraries.filterMatchesRule()
+                .flatMap { it.assets }
+                .map { libraryFolder.resolve(it.path ?: "").absolutePath }
+                .toTypedArray(),
+            clientJar.absolutePath
+        ).joinToString(separator = ":")
+
+        val commandLine = listOf(
+            getJavaPath(javaHome).absolutePath ?: error("No Java version"),
+            *manifest.arguments.jvm.toFilteredArray(),
+            manifest.mainClass,
+            *manifest.arguments.game.toFilteredArray(),
+        ).map {
+            it.replaceParams(
+                "natives_directory" to ".",
+                "launcher_name" to "chimp-launcher",
+                "launcher_version" to "1.0.0",
+                "classpath" to classpath,
+
+                "auth_player_name" to auth.profile.name,
+                "version_name" to manifest.id,
+                "game_directory" to gameDir,
+                "assets_root" to assetsFolder.absolutePath,
+                "assets_index_name" to (manifest.assets ?: error("No assets index")),
+                "auth_uuid" to auth.profile.id,
+                "auth_access_token" to auth.token.accessToken,
+                "user_type" to "mojang",
+                "version_type" to manifest.type
+            )
+        }
+
+        logger.info { "Launching Minecraft" }
+        logger.debug { "Command line: ${commandLine.joinToString(separator = " ")}" }
+
+        LauncherFrame.cleanup()
+        if (!gameDir.exists()) gameDir.mkdirs()
+
+        withContext(Dispatchers.IO) {
+            val process = ProcessBuilder(commandLine)
+                .directory(gameDir)
+                .inheritIO()
+                .start()
+            process.waitFor()
+        }
+    }
+
     data class LibraryData(
         val clientJar: File,
         val folder: File
@@ -195,17 +197,18 @@ object LauncherFrame {
 
     private val log = JTextArea().apply { isEditable = false }
     private val progress = JProgressBar()
-    private val status = JLabel("Starting game...")
-        .apply { alignmentX = Component.CENTER_ALIGNMENT }
+    private val status = JLabel("Starting game...").apply { alignmentX = Component.CENTER_ALIGNMENT }
 
     fun create() {
+        val image = ImageIO.read(LauncherFrame::class.java.getResourceAsStream("/assets/logo.png"))
+        runCatching { Taskbar.getTaskbar().iconImage = image }
+
         frame = JFrame("Chimp Launcher")
+        frame.iconImage = image
         frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+        frame.isResizable = false
         frame.setSize(600, 400)
-        frame.setLocation(
-            (Toolkit.getDefaultToolkit().screenSize.width / 2) - (frame.width / 2),
-            (Toolkit.getDefaultToolkit().screenSize.height / 2) - (frame.height / 2)
-        )
+        frame.setLocationRelativeTo(null)
 
         val panel = JPanel().apply {
             layout = BorderLayout()
@@ -214,9 +217,10 @@ object LauncherFrame {
             add(JScrollPane(log), BorderLayout.CENTER)
             add(JPanel().apply {
                 layout = BoxLayout(this, BoxLayout.Y_AXIS)
-                border = BorderFactory.createEmptyBorder(0, 10, 0, 10)
+                border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
 
                 add(status)
+                add(Box.createVerticalStrut(10))
                 add(progress)
             }, BorderLayout.SOUTH)
         }
@@ -241,12 +245,16 @@ object LauncherFrame {
 
     fun log(message: String) {
         log.append(message)
-        log.append("\n")
         log.caretPosition = log.document.length
     }
 }
 
 suspend fun main() {
+    System.setProperty("apple.laf.useScreenMenuBar", "true")
+    System.setProperty("apple.awt.application.name", "Chimp Launcher")
+    System.setProperty("apple.awt.application.appearance", "system")
+    FlatDarkLaf.setup()
+
     LauncherFrame.create()
     val config = LocalConfig.load()
     val loader = ProfileLoader(ProfileConfig.fromUrl(config.profile))

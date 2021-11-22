@@ -2,10 +2,7 @@ package dev.koding.launcher.util
 
 import java.io.File
 import java.security.MessageDigest
-import javax.swing.Box
-import javax.swing.JLabel
 import javax.swing.JOptionPane
-import javax.swing.JPasswordField
 
 
 val File.sha1: String
@@ -46,16 +43,8 @@ object OS {
 }
 
 object InputUtil {
-    fun askPassword(prompt: String): String? {
-        val jpf = JPasswordField()
-        val box = Box.createVerticalBox().apply {
-            add(JLabel(prompt))
-            add(jpf)
-        }
-
-        val dialog = JOptionPane.showConfirmDialog(null, box, "Chimp Launcher", JOptionPane.OK_CANCEL_OPTION)
-        return if (dialog == JOptionPane.OK_OPTION) jpf.password.concatToString() else null
-    }
+    fun showError(title: String, message: String) =
+        JOptionPane.showMessageDialog(null, message, title, JOptionPane.ERROR_MESSAGE)
 
     fun askSelection(prompt: String, vararg options: String) =
         JOptionPane.showOptionDialog(

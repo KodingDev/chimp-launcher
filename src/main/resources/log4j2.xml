@@ -2,7 +2,7 @@
     <Appenders>
         <LogDisplay name="LogDisplay">
             <PatternLayout
-                    pattern="%d{HH:mm:ss.SSS} | %logger{1} > %msg"/>
+                    pattern="%d{HH:mm:ss.SSS} | %logger{1} > %msg%n"/>
         </LogDisplay>
         <Console name="Console">
             <PatternLayout
