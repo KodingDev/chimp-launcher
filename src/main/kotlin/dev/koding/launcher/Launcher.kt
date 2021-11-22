@@ -61,8 +61,7 @@ object Launcher {
         val libraries = manifest.libraries.filterMatchesRule()
         libraries.forEachIndexed { index, it ->
             LauncherFrame.updateProgress(index, libraries.size)
-            it.asset?.download(folder)
-            it.native?.download(folder)
+            it.assets.forEach { it.download(folder) }
         }
 
         return LibraryData(clientJar, folder)
@@ -162,7 +161,7 @@ object Launcher {
                 .map { libraryFolder.resolve(it.path ?: "").absolutePath }
                 .toTypedArray(),
             clientJar.absolutePath
-        ).joinToString(separator = ":")
+        ).joinToString(separator = File.pathSeparator)
 
         val commandLine = listOf(
             getJavaPath(javaHome).absolutePath ?: error("No Java version"),
@@ -203,8 +202,10 @@ object Launcher {
                 .directory(gameDir)
                 .inheritIO()
                 .start()
+            Runtime.getRuntime().addShutdownHook(Thread { process.destroy() })
             process.waitFor()
         }
+        exitProcess(0)
     }
 
     data class LibraryData(
