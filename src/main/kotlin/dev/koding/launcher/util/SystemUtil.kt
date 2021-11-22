@@ -117,6 +117,7 @@ object InputUtil {
                 pack()
                 setLocationRelativeTo(null)
                 isVisible = true
+                requestFocus()
             }
         }
 }

@@ -27,10 +27,10 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:2.14.1")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
 
-    implementation("io.ktor:ktor-client-java:1.6.5")
-    implementation("io.ktor:ktor-client-serialization:1.6.5")
-    implementation("io.ktor:ktor-client-logging:1.6.5")
-    implementation("io.ktor:ktor-server-netty:1.6.5")
+    implementation("io.ktor:ktor-client-apache:1.6.4")
+    implementation("io.ktor:ktor-client-serialization:1.6.4")
+    implementation("io.ktor:ktor-client-logging:1.6.4")
+    implementation("io.ktor:ktor-server-netty:1.6.4")
 }
 
 tasks.withType<KotlinCompile> {
