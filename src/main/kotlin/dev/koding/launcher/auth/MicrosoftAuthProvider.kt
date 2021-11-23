@@ -3,6 +3,7 @@ package dev.koding.launcher.auth
 import dev.koding.launcher.util.httpClient
 import dev.koding.launcher.util.respondResource
 import dev.koding.launcher.util.sha256
+import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.toUrlBase64
 import io.ktor.application.*
 import io.ktor.client.request.*
@@ -40,7 +41,8 @@ class MicrosoftAuthProvider : AuthProvider() {
 
         if (oauth.expiry < System.currentTimeMillis()) {
             logger.info { "Refreshing Microsoft OAuth token" }
-            return oauth.refresh().fetchLoginData()
+            SwingUtil.showError("Microsoft Login", "Your Microsoft login has expired. Please login again.")
+            return fetchOauthToken().fetchLoginData()
         }
 
         if (authData != null && authData.token.expiry < System.currentTimeMillis()) {

@@ -2,7 +2,6 @@
 
 package dev.koding.launcher
 
-import com.formdev.flatlaf.FlatDarkLaf
 import dev.koding.launcher.auth.AuthManager
 import dev.koding.launcher.data.assets.AssetIndex
 import dev.koding.launcher.data.assets.toAsset
@@ -21,6 +20,9 @@ import dev.koding.launcher.util.readResource
 import dev.koding.launcher.util.replaceParams
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.system.extractZip
+import dev.koding.launcher.util.ui.applySwingTheme
+import dev.koding.launcher.util.ui.content
+import dev.koding.launcher.util.ui.frame
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import mu.KotlinLogging
@@ -29,10 +31,8 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.config.Configurator
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.Taskbar
 import java.io.File
 import java.nio.file.Files
-import javax.imageio.ImageIO
 import javax.swing.*
 import kotlin.system.exitProcess
 
@@ -215,45 +215,33 @@ object Launcher {
 }
 
 object LauncherFrame {
-    private lateinit var frame: JFrame
+    private var frame: JFrame? = null
 
     private val log = JTextArea().apply { isEditable = false }
     private val progress = JProgressBar()
     private val status = JLabel("Starting game...").apply { alignmentX = Component.CENTER_ALIGNMENT }
 
     fun create() {
-        val image = ImageIO.read(LauncherFrame::class.java.getResourceAsStream("/assets/logo.png"))
-        runCatching { Taskbar.getTaskbar().iconImage = image }
+        frame = frame(size = 600 to 400) {
+            content {
+                layout = BorderLayout()
 
-        frame = JFrame("Chimp Launcher")
-        frame.iconImage = image
-        frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        frame.isResizable = false
-        frame.setSize(600, 400)
-        frame.setLocationRelativeTo(null)
+                JScrollPane(log) + BorderLayout.CENTER
+                panel {
+                    padding = 10
 
-        val panel = JPanel().apply {
-            layout = BorderLayout()
-
-            // Log text area, current phase, and progress bar
-            add(JScrollPane(log), BorderLayout.CENTER)
-            add(JPanel().apply {
-                layout = BoxLayout(this, BoxLayout.Y_AXIS)
-                border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
-
-                add(status)
-                add(Box.createVerticalStrut(10))
-                add(progress)
-            }, BorderLayout.SOUTH)
+                    +status
+                    +verticalSpace(10)
+                    +progress
+                } + BorderLayout.SOUTH
+            }
         }
-
-        frame.contentPane = panel
-        frame.isVisible = true
     }
 
     fun cleanup() {
-        frame.isVisible = false
-        frame.dispose()
+        frame ?: return
+        frame!!.isVisible = false
+        frame!!.dispose()
     }
 
     fun update(status: String = this.status.text, progress: Int = this.progress.value) {
@@ -272,10 +260,7 @@ object LauncherFrame {
 }
 
 suspend fun main() {
-    System.setProperty("apple.laf.useScreenMenuBar", "true")
-    System.setProperty("apple.awt.application.name", "Chimp Launcher")
-    System.setProperty("apple.awt.application.appearance", "system")
-    FlatDarkLaf.setup()
+    applySwingTheme()
     LauncherFrame.create()
     LauncherFrame.update("Loading profiles")
 

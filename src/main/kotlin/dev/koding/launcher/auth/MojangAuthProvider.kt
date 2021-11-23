@@ -4,6 +4,9 @@ package dev.koding.launcher.auth
 
 import dev.koding.launcher.util.json
 import dev.koding.launcher.util.system.SwingUtil
+import dev.koding.launcher.util.ui.alignX
+import dev.koding.launcher.util.ui.content
+import dev.koding.launcher.util.ui.frame
 import io.ktor.client.features.*
 import io.ktor.util.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -11,7 +14,9 @@ import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import java.awt.BorderLayout
 import java.awt.Component
-import javax.swing.*
+import javax.swing.JLabel
+import javax.swing.JPasswordField
+import javax.swing.JTextField
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.system.exitProcess
@@ -37,38 +42,29 @@ class MojangAuthProvider : AuthProvider() {
         val password = JPasswordField("")
 
         suspendCoroutine<Boolean> { cont ->
-            JFrame("Mojang Authentication").apply frame@{
-                setSize(400, 200)
-                setLocationRelativeTo(null)
+            frame(size = 400 to 200) {
+                content {
+                    padding = 10
 
-                contentPane = JPanel().apply {
-                    border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
-                    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+                    +JLabel("Username").alignX(Component.LEFT_ALIGNMENT)
+                    +verticalSpace(5)
+                    +username.alignX(Component.LEFT_ALIGNMENT)
+                    +verticalSpace(10)
 
-                    add(JLabel("Username", SwingConstants.LEFT).apply { alignmentX = Component.LEFT_ALIGNMENT })
-                    add(Box.createVerticalStrut(5))
-                    add(username.apply { alignmentX = Component.LEFT_ALIGNMENT })
-                    add(Box.createVerticalStrut(10))
+                    +JLabel("Password").alignX(Component.LEFT_ALIGNMENT)
+                    +verticalSpace(5)
+                    +password.alignX(Component.LEFT_ALIGNMENT)
+                    +verticalSpace(10)
 
-                    add(JLabel("Password").apply { alignmentX = Component.LEFT_ALIGNMENT })
-                    add(Box.createVerticalStrut(5))
-                    add(password.apply { alignmentX = Component.LEFT_ALIGNMENT })
-                    add(Box.createVerticalStrut(10))
-
-                    add(JPanel().apply {
-                        alignmentX = Component.LEFT_ALIGNMENT
+                    +panel {
                         layout = BorderLayout()
 
-                        add(JButton("Login").apply {
-                            addActionListener {
-                                cont.resume(true)
-                                this@frame.isVisible = false
-                            }
-                        }, BorderLayout.CENTER)
-                    })
+                        button("Login") {
+                            cont.resume(true)
+                            this@frame.dispose()
+                        } + BorderLayout.CENTER
+                    }.alignX(Component.LEFT_ALIGNMENT)
                 }
-
-                isVisible = true
             }
         }
 
