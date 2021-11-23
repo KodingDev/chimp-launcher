@@ -1,6 +1,6 @@
-package dev.koding.launcher.data.runtime
+package dev.koding.launcher.data.java.runtime
 
-import dev.koding.launcher.data.manifest.LaunchJavaVersion
+import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.util.system.OS
 
 fun JavaRuntime.select() = when {
@@ -11,7 +11,7 @@ fun JavaRuntime.select() = when {
     else -> null
 }
 
-fun List<JavaRuntimeData>.match(versionData: LaunchJavaVersion) =
+fun List<JavaRuntime.Data>.match(versionData: LauncherManifest.JavaVersion) =
     filter {
         val rawVersion = it.version.name.split("_").first()
         val version = if ("." in rawVersion) rawVersion.split(".")

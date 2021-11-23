@@ -1,10 +1,9 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package dev.koding.launcher.data.manifest
+package dev.koding.launcher.data.minecraft.manifest
 
 import dev.koding.launcher.loader.ResourceManager
 import dev.koding.launcher.util.json
-import dev.koding.launcher.util.system.OS
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -18,12 +17,12 @@ data class LauncherManifest(
     val mainClass: String,
     val type: String,
     val minecraftArguments: String? = null,
-    val arguments: LaunchArguments? = null,
-    val logging: LaunchLogging? = null,
-    val javaVersion: LaunchJavaVersion? = null,
+    val arguments: Arguments? = null,
+    val logging: Logging? = null,
+    val javaVersion: JavaVersion? = null,
     val assets: String? = null,
     val assetIndex: Asset? = null,
-    val downloads: LaunchDownloads? = null,
+    val downloads: Downloads? = null,
     val inheritsFrom: String? = null
 ) {
     companion object {
@@ -34,7 +33,7 @@ data class LauncherManifest(
             if (manifest.inheritsFrom != null) {
                 val sub = resourceManager.getManifest("profile:${manifest.inheritsFrom}")
                 return manifest.copy(
-                    arguments = (manifest.arguments ?: LaunchArguments()) + (sub.arguments ?: LaunchArguments()),
+                    arguments = (manifest.arguments ?: Arguments()) + (sub.arguments ?: Arguments()),
                     downloads = sub.downloads ?: manifest.downloads,
                     libraries = manifest.libraries + sub.libraries,
                     assetIndex = sub.assetIndex ?: manifest.assetIndex,
@@ -47,55 +46,59 @@ data class LauncherManifest(
             return manifest
         }
     }
+
+    @Serializable
+    data class Library(
+        val name: String,
+        val url: String? = null,
+        val downloads: Downloads? = null,
+        val rules: List<Rule> = emptyList(),
+        val natives: Map<String, String> = emptyMap()
+    ) {
+        @Serializable
+        data class Downloads(
+            val artifact: Asset? = null,
+            val classifiers: Map<String, Asset> = emptyMap()
+        )
+    }
+
+    @Serializable
+    data class Logging(
+        val client: Config
+    ) {
+        @Serializable
+        data class Config(
+            val argument: String,
+            val file: Asset,
+            val type: String
+        )
+    }
+
+    @Serializable
+    data class Arguments(
+        @Serializable(with = LaunchArgumentListDeserializer::class)
+        val game: List<Argument> = emptyList(),
+        @Serializable(with = LaunchArgumentListDeserializer::class)
+        val jvm: List<Argument> = emptyList()
+    ) {
+        @Serializable
+        data class Argument(
+            val value: String,
+            val rules: List<Rule> = emptyList()
+        )
+    }
+
+    @Serializable
+    data class JavaVersion(
+        val component: String,
+        val majorVersion: Int
+    )
+
+    @Serializable
+    data class Downloads(
+        val client: Asset
+    )
 }
-
-@Serializable
-data class LaunchLogging(
-    val client: LoggingConfig
-)
-
-@Serializable
-data class LoggingConfig(
-    val argument: String,
-    val file: Asset,
-    val type: String
-)
-
-@Serializable
-data class LaunchJavaVersion(
-    val component: String,
-    val majorVersion: Int
-)
-
-@Serializable
-data class Library(
-    val name: String,
-    val url: String? = null,
-    val downloads: LibraryDownloads? = null,
-    val rules: List<Rule> = emptyList(),
-    val natives: Map<String, String> = emptyMap()
-) {
-    private val asset: Asset?
-        get() = downloads?.artifact ?: url?.let { url ->
-            val path = name.split(":").let { "${it[0].replace(".", "/")}/${it[1]}/${it[2]}/${it[1]}-${it[2]}.jar" }
-            Asset("$url$path", path = path)
-        }
-
-    val assets = listOfNotNull(asset, *(downloads?.classifiers?.values?.toTypedArray() ?: emptyArray()))
-    val native = OS.type.names.mapNotNull { natives[it] }.firstOrNull()?.let { downloads?.classifiers?.get(it) }
-}
-
-@Serializable
-data class LibraryDownloads(
-    val artifact: Asset? = null,
-    val classifiers: Map<String, Asset> = emptyMap()
-)
-
-// Server stuff isn't needed, nor mappings
-@Serializable
-data class LaunchDownloads(
-    val client: Asset
-)
 
 @Serializable
 data class Asset(
@@ -108,35 +111,20 @@ data class Asset(
 )
 
 @Serializable
-data class LaunchArguments(
-    @Serializable(with = LaunchArgumentListDeserializer::class)
-    val game: List<LaunchArgument> = emptyList(),
-    @Serializable(with = LaunchArgumentListDeserializer::class)
-    val jvm: List<LaunchArgument> = emptyList()
-)
-
-@Serializable
-data class LaunchArgument(
-    val value: String,
-    val rules: List<Rule> = emptyList()
-)
-
-@Serializable
-enum class RuleAction {
-    @SerialName("allow")
-    ALLOW,
-
-    @SerialName("disallow")
-    DISALLOW
-}
-
-// TODO: Add more rules
-@Serializable
 data class Rule(
-    val action: RuleAction,
+    val action: Action,
     val os: OS? = null,
     val features: Features? = null
 ) {
+    @Serializable
+    enum class Action {
+        @SerialName("allow")
+        ALLOW,
+
+        @SerialName("disallow")
+        DISALLOW
+    }
+
     @Serializable
     data class OS(
         val name: String? = null,
@@ -152,7 +140,7 @@ data class Rule(
 }
 
 object LaunchArgumentListDeserializer :
-    JsonTransformingSerializer<List<LaunchArgument>>(ListSerializer(LaunchArgument.serializer())) {
+    JsonTransformingSerializer<List<LauncherManifest.Arguments.Argument>>(ListSerializer(LauncherManifest.Arguments.Argument.serializer())) {
     override fun transformDeserialize(element: JsonElement): JsonElement {
         if (element !is JsonArray) return element
         return JsonArray(element.flatMap {

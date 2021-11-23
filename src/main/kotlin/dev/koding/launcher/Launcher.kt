@@ -3,16 +3,15 @@
 package dev.koding.launcher
 
 import dev.koding.launcher.auth.AuthManager
-import dev.koding.launcher.data.assets.AssetIndex
-import dev.koding.launcher.data.assets.toAsset
-import dev.koding.launcher.data.jdk.JdkFile
-import dev.koding.launcher.data.jdk.JdkManifest
+import dev.koding.launcher.data.java.jdk.JdkManifest
+import dev.koding.launcher.data.java.runtime.JavaRuntime
+import dev.koding.launcher.data.java.runtime.match
+import dev.koding.launcher.data.java.runtime.select
 import dev.koding.launcher.data.launcher.LocalConfig
 import dev.koding.launcher.data.launcher.RemoteConfig
-import dev.koding.launcher.data.manifest.*
-import dev.koding.launcher.data.runtime.JavaRuntime
-import dev.koding.launcher.data.runtime.match
-import dev.koding.launcher.data.runtime.select
+import dev.koding.launcher.data.minecraft.assets.AssetIndex
+import dev.koding.launcher.data.minecraft.assets.toAsset
+import dev.koding.launcher.data.minecraft.manifest.*
 import dev.koding.launcher.loader.ProfileLoader
 import dev.koding.launcher.util.fromUrl
 import dev.koding.launcher.util.json
@@ -103,16 +102,16 @@ object Launcher {
         jdkManifest.files.entries.forEachIndexed { i, (path, data) ->
             LauncherFrame.updateProgress(i, jdkManifest.files.size)
             when (data.type) {
-                JdkFile.Type.DIRECTORY -> {
+                JdkManifest.File.Type.DIRECTORY -> {
                     val dir = home.resolve(path)
                     logger.debug { "Creating directory: $dir" }
                     if (!dir.exists()) dir.mkdirs()
                 }
-                JdkFile.Type.FILE -> {
+                JdkManifest.File.Type.FILE -> {
                     val file = data.downloads?.raw?.download(home.resolve(path), strict = true) ?: return@forEachIndexed
                     if (data.executable == true) file.setExecutable(true)
                 }
-                JdkFile.Type.LINK -> {
+                JdkManifest.File.Type.LINK -> {
                     val source = home.resolve(path).toPath()
                     val target = home.resolve(data.target ?: return@forEachIndexed).toPath()
                     logger.debug { "Creating symlink: $source -> $target" }

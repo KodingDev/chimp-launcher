@@ -1,4 +1,4 @@
-package dev.koding.launcher.data.manifest
+package dev.koding.launcher.data.minecraft.manifest
 
 import dev.koding.launcher.util.system.OS
 import dev.koding.launcher.util.system.sha1
@@ -10,12 +10,8 @@ import java.nio.file.Files
 val logger = KotlinLogging.logger {}
 
 fun Asset.matches(file: File): Boolean {
-    // Check if the size matches
     if (size != null && Files.size(file.toPath()) != size) return false
-
-    // Check if the SHA-1 matches
     if (sha1 != null && sha1 != file.sha1) return false
-
     return true
 }
 
@@ -44,7 +40,6 @@ fun Asset.download(root: File, strict: Boolean = false): File {
 
     // Verify integrity
     if (!matches(destination)) throw IllegalStateException("Integrity check failed for $url")
-
     logger.debug { "Downloaded file: ${destination.absolutePath}" }
     return destination
 }
@@ -59,18 +54,18 @@ fun Rule.matches(): Boolean {
     return true
 }
 
-fun List<Rule>.matches(default: RuleAction): RuleAction {
-    if (isEmpty()) return RuleAction.ALLOW
+fun List<Rule>.matches(default: Rule.Action): Rule.Action {
+    if (isEmpty()) return Rule.Action.ALLOW
     var action = default
     forEach { if (it.matches()) action = it.action }
     return action
 }
 
-fun List<LaunchArgument>.filterMatchesRule(default: RuleAction) =
-    filter { it.rules.matches(default) == RuleAction.ALLOW }
+fun List<LauncherManifest.Arguments.Argument>.filterMatchesRule(default: Rule.Action) =
+    filter { it.rules.matches(default) == Rule.Action.ALLOW }
 
-fun List<LaunchArgument>.toFilteredArray() =
-    filterMatchesRule(RuleAction.DISALLOW).map { it.value }.toTypedArray()
+fun List<LauncherManifest.Arguments.Argument>.toFilteredArray() =
+    filterMatchesRule(Rule.Action.DISALLOW).map { it.value }.toTypedArray()
 
 fun getJavaPath(root: File) = when (OS.type) {
     OS.Type.WINDOWS -> root.resolve("bin/java.exe")
@@ -79,10 +74,26 @@ fun getJavaPath(root: File) = when (OS.type) {
     else -> throw IllegalStateException("Unsupported OS: ${OS.type}")
 }
 
-operator fun LaunchArguments.plus(other: LaunchArguments) =
-    LaunchArguments(
+operator fun LauncherManifest.Arguments.plus(other: LauncherManifest.Arguments) =
+    LauncherManifest.Arguments(
         game = game.plus(other.game),
         jvm = jvm.plus(other.jvm)
     )
 
-fun List<Library>.filterMatchesRule() = filter { it.rules.matches(RuleAction.ALLOW) == RuleAction.ALLOW }
+fun List<LauncherManifest.Library>.filterMatchesRule() =
+    filter { it.rules.matches(Rule.Action.ALLOW) == Rule.Action.ALLOW }
+
+
+val LauncherManifest.Library.asset: Asset?
+    get() = downloads?.artifact ?: url?.let { url ->
+        val path = name.split(":").let { "${it[0].replace(".", "/")}/${it[1]}/${it[2]}/${it[1]}-${it[2]}.jar" }
+        Asset("$url$path", path = path)
+    }
+
+val LauncherManifest.Library.assets
+    get() = listOfNotNull(
+        asset,
+        *(downloads?.classifiers?.values?.toTypedArray() ?: emptyArray())
+    )
+val LauncherManifest.Library.native
+    get() = OS.type.names.mapNotNull { natives[it] }.firstOrNull()?.let { downloads?.classifiers?.get(it) }

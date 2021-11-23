@@ -2,11 +2,9 @@ package dev.koding.launcher.loader
 
 import dev.koding.launcher.Launcher
 import dev.koding.launcher.LauncherFrame
-import dev.koding.launcher.data.config.ProfileConfig
-import dev.koding.launcher.data.config.ProfileFile
-import dev.koding.launcher.data.manifest.LaunchArgument
-import dev.koding.launcher.data.manifest.LaunchArguments
-import dev.koding.launcher.data.manifest.plus
+import dev.koding.launcher.data.launcher.ProfileConfig
+import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
+import dev.koding.launcher.data.minecraft.manifest.plus
 import mu.KotlinLogging
 
 class ProfileLoader(private val config: ProfileConfig) {
@@ -16,6 +14,7 @@ class ProfileLoader(private val config: ProfileConfig) {
     private val profileHome = Launcher.home.resolve("profiles/${config.name}")
 
     suspend fun load() {
+        // TODO: Load Minecraft profile JSONs automatically
         logger.info { "Loading profile: ${config.name}" }
         logger.info { "Loading resources" }
 
@@ -33,12 +32,12 @@ class ProfileLoader(private val config: ProfileConfig) {
             val file = profileHome.resolve(path)
 
             when (data.action) {
-                ProfileFile.Action.COPY -> {
+                ProfileConfig.File.Action.COPY -> {
                     val resource = data.resource?.let { resourceManager[it] } ?: return@forEach
                     logger.debug { "Copying file: ${resource.file.absolutePath} -> ${file.absolutePath}" }
                     resource.file.copyTo(file, overwrite = true)
                 }
-                ProfileFile.Action.DELETE -> {
+                ProfileConfig.File.Action.DELETE -> {
                     if (!file.exists()) return@forEach
                     logger.debug { "Deleting file: ${file.absolutePath}" }
                     file.delete()
@@ -52,8 +51,8 @@ class ProfileLoader(private val config: ProfileConfig) {
         val manifest = resourceManager.getManifest(config.launch.profile)
         Launcher.launch(
             manifest.copy(
-                arguments = (manifest.arguments ?: LaunchArguments()) + LaunchArguments(game =
-                config.launch.arguments.map { LaunchArgument(it) }),
+                arguments = (manifest.arguments ?: LauncherManifest.Arguments()) + LauncherManifest.Arguments(game =
+                config.launch.arguments.map { LauncherManifest.Arguments.Argument(it) }),
                 minecraftArguments = manifest.minecraftArguments + config.launch.arguments.joinToString(separator = " ")
             ), profileHome
         )
