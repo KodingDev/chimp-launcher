@@ -8,11 +8,14 @@ import dev.koding.launcher.data.java.runtime.JavaRuntime
 import dev.koding.launcher.data.java.runtime.match
 import dev.koding.launcher.data.java.runtime.select
 import dev.koding.launcher.data.launcher.LocalConfig
+import dev.koding.launcher.data.launcher.ProfileConfig
 import dev.koding.launcher.data.launcher.RemoteConfig
 import dev.koding.launcher.data.minecraft.assets.AssetIndex
 import dev.koding.launcher.data.minecraft.assets.toAsset
 import dev.koding.launcher.data.minecraft.manifest.*
 import dev.koding.launcher.loader.ProfileLoader
+import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.loader.resolvers.MinecraftVersionResolver
 import dev.koding.launcher.util.fromUrl
 import dev.koding.launcher.util.json
 import dev.koding.launcher.util.readResource
@@ -35,11 +38,16 @@ import java.nio.file.Files
 import javax.swing.*
 import kotlin.system.exitProcess
 
+// TODO: Make this a class
 object Launcher {
 
     private val logger = KotlinLogging.logger {}
 
     val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
+
+    val resourceManager = ResourceManager {
+        +MinecraftVersionResolver
+    }
 
     init {
         if (System.getProperty("debug.log") != null) {
@@ -263,12 +271,16 @@ suspend fun main() {
     LauncherFrame.create()
     LauncherFrame.update("Loading profiles")
 
-    val config = readResource<LocalConfig>("/config.json")?.config?.fromUrl<RemoteConfig>() ?: return
+    val configPath = System.getProperty("launcher.remoteConfig")?.let { File(it) }
+    val config = configPath?.json()
+        ?: (readResource<LocalConfig>("/config.json")?.config?.fromUrl<RemoteConfig>() ?: return)
     val choice = SwingUtil.askSelection("Select a profile", *config.profiles.map { it.name }.toTypedArray())
         ?: exitProcess(0)
 
     val profile = config.profiles.firstOrNull { it.name == choice } ?: error("Invalid profile")
-    val loader = ProfileLoader(profile.url.fromUrl())
+    val profileConfig =
+        Launcher.resourceManager.loadAs<ProfileConfig>(profile.resource) ?: error("Failed to load config")
+    val loader = ProfileLoader(profileConfig, Launcher.resourceManager)
 
     loader.load()
     loader.start()

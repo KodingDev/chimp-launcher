@@ -26,8 +26,8 @@ data class LauncherManifest(
     val inheritsFrom: String? = null
 ) {
     companion object {
-        fun load(resourceManager: ResourceManager, name: String): LauncherManifest {
-            val resource = resourceManager[name]?.file ?: error("Invalid resource")
+        suspend fun load(resourceManager: ResourceManager, name: String): LauncherManifest {
+            val resource = resourceManager.getOrResolve(name)?.file ?: error("Invalid resource")
             val manifest = resource.json<LauncherManifest>()
 
             if (manifest.inheritsFrom != null) {

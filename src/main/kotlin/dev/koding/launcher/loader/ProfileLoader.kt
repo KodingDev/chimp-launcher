@@ -7,10 +7,9 @@ import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.data.minecraft.manifest.plus
 import mu.KotlinLogging
 
-class ProfileLoader(private val config: ProfileConfig) {
+class ProfileLoader(private val config: ProfileConfig, private val resourceManager: ResourceManager) {
 
     private val logger = KotlinLogging.logger {}
-    private val resourceManager = ResourceManager()
     private val profileHome = Launcher.home.resolve("profiles/${config.name}")
 
     suspend fun load() {

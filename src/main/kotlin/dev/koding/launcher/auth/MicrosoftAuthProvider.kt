@@ -66,23 +66,17 @@ class MicrosoftAuthProvider : AuthProvider() {
 
     private suspend fun OAuthToken.fetchLoginData(): MicrosoftAuthData {
         // Authenticating with Xbox
-        logger.debug { "Authenticating with Xbox" }
+        logger.info { "Authenticating with Xbox" }
         val xblToken = getXBLToken(this)
         val xstsToken = getXSTSToken(xblToken)
 
         // Get Minecraft token & profile
-        logger.debug { "Getting Minecraft token & profile" }
+        logger.info { "Getting Minecraft token & profile" }
         val mcToken = getMinecraftToken(xblToken, xstsToken)
         val mcProfile = MinecraftAPI.getMinecraftProfile(mcToken.accessToken)
 
         return MicrosoftAuthData(mcProfile, mcToken, this)
     }
-
-    private suspend fun OAuthToken.refresh() =
-        getAuthorizationToken(
-            "refresh_token" to refreshToken,
-            "grant_type" to "refresh_token",
-        )
 
     private suspend fun getAuthorizationCode(verifier: String): String? {
         val url = url {

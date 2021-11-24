@@ -2,6 +2,7 @@
 
 package dev.koding.launcher.data.launcher
 
+import dev.koding.launcher.loader.Resource
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -18,17 +19,6 @@ data class ProfileConfig(
         val profile: String,
         val arguments: List<String> = emptyList()
     )
-
-    @Serializable
-    sealed class Resource {
-        abstract val name: String
-    }
-
-    @Serializable
-    data class UrlResource(
-        override val name: String,
-        val url: String
-    ) : Resource()
 
     @Serializable
     data class File(
