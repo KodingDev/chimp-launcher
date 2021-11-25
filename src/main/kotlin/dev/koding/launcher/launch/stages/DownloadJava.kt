@@ -1,12 +1,14 @@
 package dev.koding.launcher.launch.stages
 
-import dev.koding.launcher.LauncherFrame
 import dev.koding.launcher.data.java.jdk.JdkManifest
 import dev.koding.launcher.data.java.runtime.JavaRuntime
 import dev.koding.launcher.data.java.runtime.match
 import dev.koding.launcher.data.java.runtime.select
 import dev.koding.launcher.data.minecraft.manifest.download
-import dev.koding.launcher.launch.*
+import dev.koding.launcher.launch.JavaDirectory
+import dev.koding.launcher.launch.LaunchStage
+import dev.koding.launcher.launch.LauncherDirectory
+import dev.koding.launcher.launch.MinecraftLauncher
 import dev.koding.launcher.util.json
 import mu.KotlinLogging
 import java.io.File
@@ -17,7 +19,7 @@ object DownloadJava : LaunchStage<DownloadJava.Result> {
     private val logger = KotlinLogging.logger {}
 
     override suspend fun run(launcher: MinecraftLauncher): Result {
-        LauncherFrame.update("Downloading Java", 0)
+        launcher.progressHandler("Downloading Java", 0.0)
         logger.info { "Downloading java" }
 
         val root = launcher.config[JavaDirectory]
@@ -32,7 +34,7 @@ object DownloadJava : LaunchStage<DownloadJava.Result> {
 
         val jdkManifest = runtimeData.manifest.download(home).json<JdkManifest>()
         jdkManifest.files.entries.forEachIndexed { i, (path, data) ->
-            LauncherFrame.updateProgress(i, jdkManifest.files.size)
+            launcher.progressHandler(null, i / jdkManifest.files.size.toDouble())
             when (data.type) {
                 JdkManifest.File.Type.DIRECTORY -> {
                     val dir = home.resolve(path)
@@ -59,5 +61,5 @@ object DownloadJava : LaunchStage<DownloadJava.Result> {
 
     data class Result(
         val javaHome: File
-    ) : LaunchResult
+    )
 }

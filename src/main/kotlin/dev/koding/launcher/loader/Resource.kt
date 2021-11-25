@@ -43,9 +43,7 @@ data class UrlResource(
             val target = manager.config[ResourcesDirectory]?.resolve("${parsed.host}/${parsed.path}")
                 ?: error("No resources directory specified")
             val loaded = LoadedResource(resource, target)
-
-            if (target.exists() && resource.sha1 == null) return loaded
-            if (target.sha1 == resource.sha1) return loaded
+            if (target.exists() && (resource.sha1 == null || target.sha1 == resource.sha1)) return loaded
 
             logger.info { "Downloading ${resource.name} to ${target.absolutePath}" }
             target.parentFile.mkdirs()

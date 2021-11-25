@@ -1,7 +1,11 @@
+@file:OptIn(ObsoleteCoroutinesApi::class)
+
 package dev.koding.launcher.data.minecraft.manifest
 
+import dev.koding.launcher.launch.ProgressHandler
 import dev.koding.launcher.util.system.OS
 import dev.koding.launcher.util.system.sha1
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.io.File
 import java.net.URL
@@ -95,5 +99,17 @@ val LauncherManifest.Library.assets
         asset,
         *(downloads?.classifiers?.values?.toTypedArray() ?: emptyArray())
     )
+
 val LauncherManifest.Library.native
     get() = OS.type.names.mapNotNull { natives[it] }.firstOrNull()?.let { downloads?.classifiers?.get(it) }
+
+suspend fun Collection<Asset>.download(root: File, progressHandler: ProgressHandler = { _, _ -> }, threads: Int = 5) {
+    var i = 0
+    val context = newFixedThreadPoolContext(threads, "Download")
+    map {
+        CoroutineScope(context).async {
+            it.download(root)
+            progressHandler(null, ++i / size.toDouble())
+        }
+    }.joinAll()
+}

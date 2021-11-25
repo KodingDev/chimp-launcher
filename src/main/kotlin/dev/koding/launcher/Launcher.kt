@@ -18,7 +18,9 @@ import dev.koding.launcher.util.system.configureLogging
 import dev.koding.launcher.util.ui.applySwingTheme
 import dev.koding.launcher.util.ui.content
 import dev.koding.launcher.util.ui.frame
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import java.awt.BorderLayout
 import java.awt.Component
@@ -56,13 +58,9 @@ object LauncherFrame {
         frame!!.dispose()
     }
 
-    fun update(status: String = this.status.text, progress: Int = this.progress.value) {
-        this.progress.value = progress
-        this.status.text = status
-    }
-
-    fun updateProgress(current: Int, max: Int) {
-        this.progress.value = (current * 100.0 / max).toInt()
+    fun update(status: String? = null, progress: Int? = null) {
+        progress?.let { this.progress.value = it }
+        status?.let { this.status.text = it }
     }
 
     fun log(message: String) {
@@ -96,15 +94,19 @@ suspend fun main() {
     val profileConfig = resourceManager.load(profile.resource)?.json<ProfileConfig>()
         ?: error("Failed to load config")
 
-
     val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
     val loader = profileConfig.loader(resourceManager) {
         config[ResourcesDirectory] = home.resolve("resources")
         config[LauncherDirectory] = home.resolve("launcher")
         config[GameDirectory] = home.resolve("profiles/${profileConfig.name}")
+
+        progressHandler = { name, progress -> LauncherFrame.update(name, progress?.times(100)?.toInt()) }
     }
 
     loader.load()
-    loader.start()
+
+    val process = loader.start() ?: return
+    LauncherFrame.cleanup()
+    withContext(Dispatchers.IO) { process.waitFor() }
     exitProcess(0)
 }

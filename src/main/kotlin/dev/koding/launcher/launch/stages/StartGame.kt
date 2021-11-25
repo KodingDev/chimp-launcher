@@ -1,13 +1,12 @@
 package dev.koding.launcher.launch.stages
 
-import dev.koding.launcher.LauncherFrame
+import dev.koding.launcher.auth.AuthData
 import dev.koding.launcher.data.minecraft.manifest.assets
 import dev.koding.launcher.data.minecraft.manifest.filterMatchesRule
 import dev.koding.launcher.data.minecraft.manifest.getJavaPath
 import dev.koding.launcher.data.minecraft.manifest.toFilteredArray
 import dev.koding.launcher.launch.GameDirectory
 import dev.koding.launcher.launch.LaunchStage
-import dev.koding.launcher.launch.LaunchSuccess
 import dev.koding.launcher.launch.MinecraftLauncher
 import dev.koding.launcher.util.replaceParams
 import kotlinx.coroutines.Dispatchers
@@ -15,12 +14,12 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import java.io.File
 
-object StartGame : LaunchStage<LaunchSuccess> {
+object StartGame : LaunchStage<Process> {
     private val logger = KotlinLogging.logger {}
 
-    override suspend fun run(launcher: MinecraftLauncher): LaunchSuccess {
+    override suspend fun run(launcher: MinecraftLauncher): Process {
         val gameDir = launcher.config[GameDirectory] ?: error("Game directory not specified")
-        val authentication = launcher.get<Authentication.Result>(Authentication)
+        val authentication = launcher.get<AuthData>(Authentication)
             ?: error("Authentication result is null")
         val downloadAssets = launcher.get<DownloadAssets.Result>(DownloadAssets)
             ?: error("Download assets result is null")
@@ -31,7 +30,7 @@ object StartGame : LaunchStage<LaunchSuccess> {
         val setupNatives = launcher.get<SetupNatives.Result>(SetupNatives)
             ?: error("Setup natives result is null")
 
-        // TODO: Rewrite half of this
+        // I really need to rewrite half of this
         logger.info { "Launching version: ${launcher.manifest.id}" }
 
         val classpath = listOf(
@@ -57,13 +56,13 @@ object StartGame : LaunchStage<LaunchSuccess> {
                 "launcher_version" to "1.0.0",
                 "classpath" to classpath,
 
-                "auth_player_name" to authentication.data.profile.name,
+                "auth_player_name" to authentication.profile.name,
                 "version_name" to launcher.manifest.id,
                 "game_directory" to gameDir,
                 "assets_root" to downloadAssets.folder.absolutePath,
                 "assets_index_name" to (launcher.manifest.assets ?: error("No assets index")),
-                "auth_uuid" to authentication.data.profile.id,
-                "auth_access_token" to authentication.data.token.accessToken,
+                "auth_uuid" to authentication.profile.id,
+                "auth_access_token" to authentication.token.accessToken,
                 "user_type" to "mojang",
                 "version_type" to launcher.manifest.type,
                 "user_properties" to "{}"
@@ -73,18 +72,15 @@ object StartGame : LaunchStage<LaunchSuccess> {
         logger.info { "Launching Minecraft" }
         logger.debug { "Command line: ${commandLine.joinToString(separator = " ")}" }
 
-        LauncherFrame.cleanup()
         if (!gameDir.exists()) gameDir.mkdirs()
-
-        withContext(Dispatchers.IO) {
-            val process = ProcessBuilder(commandLine)
+        val process = withContext(Dispatchers.IO) {
+            ProcessBuilder(commandLine)
                 .directory(gameDir)
                 .inheritIO()
                 .start()
-            Runtime.getRuntime().addShutdownHook(Thread { process.destroy() })
-            process.waitFor()
         }
 
-        return LaunchSuccess
+        Runtime.getRuntime().addShutdownHook(Thread { process.destroy() })
+        return process
     }
 }

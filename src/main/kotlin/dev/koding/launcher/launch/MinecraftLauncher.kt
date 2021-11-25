@@ -3,13 +3,17 @@ package dev.koding.launcher.launch
 import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import mu.KotlinLogging
 
+typealias ProgressHandler = (name: String?, progress: Double?) -> Unit
+
 class MinecraftLauncher(val manifest: LauncherManifest) {
 
     private val logger = KotlinLogging.logger {}
     private val data = hashMapOf<LaunchStage<*>, Any>()
 
+    var progressHandler: ProgressHandler = { _, _ -> }
     val config = Config()
 
+    @Suppress("MemberVisibilityCanBePrivate")
     suspend fun run(stage: LaunchStage<*>): Any? {
         logger.info { "Running stage: ${stage.javaClass.simpleName}" }
         val result = stage.run(this)
@@ -18,7 +22,7 @@ class MinecraftLauncher(val manifest: LauncherManifest) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    suspend fun <T : LaunchResult> get(stage: LaunchStage<*>): T? {
+    suspend fun <T> get(stage: LaunchStage<*>): T? {
         (data[stage] as? T)?.let { return it }
         if (stage !in data) return run(stage) as? T
         return null
@@ -26,9 +30,6 @@ class MinecraftLauncher(val manifest: LauncherManifest) {
 
 }
 
-interface LaunchStage<T : LaunchResult> {
+interface LaunchStage<T> {
     suspend fun run(launcher: MinecraftLauncher): T?
 }
-
-interface LaunchResult
-object LaunchSuccess : LaunchResult

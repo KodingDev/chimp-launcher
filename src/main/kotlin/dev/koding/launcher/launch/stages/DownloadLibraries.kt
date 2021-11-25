@@ -1,10 +1,12 @@
 package dev.koding.launcher.launch.stages
 
-import dev.koding.launcher.LauncherFrame
 import dev.koding.launcher.data.minecraft.manifest.assets
 import dev.koding.launcher.data.minecraft.manifest.download
 import dev.koding.launcher.data.minecraft.manifest.filterMatchesRule
-import dev.koding.launcher.launch.*
+import dev.koding.launcher.launch.LaunchStage
+import dev.koding.launcher.launch.LauncherDirectory
+import dev.koding.launcher.launch.LibraryDirectory
+import dev.koding.launcher.launch.MinecraftLauncher
 import mu.KotlinLogging
 import java.io.File
 
@@ -12,8 +14,7 @@ object DownloadLibraries : LaunchStage<DownloadLibraries.Result> {
     private val logger = KotlinLogging.logger {}
 
     override suspend fun run(launcher: MinecraftLauncher): Result {
-        // TODO: Remove these
-        LauncherFrame.update("Downloading client jar", 0)
+        launcher.progressHandler("Downloading client jar", 0.0)
         logger.info { "Downloading client jar" }
 
         val libraryFolder = launcher.config[LibraryDirectory]
@@ -26,14 +27,10 @@ object DownloadLibraries : LaunchStage<DownloadLibraries.Result> {
                 strict = true
             ) ?: error("No client jar")
 
-        LauncherFrame.update("Downloading libraries", 0)
         logger.info { "Downloading libraries" }
-
-        val libraries = launcher.manifest.libraries.filterMatchesRule()
-        libraries.forEachIndexed { index, it ->
-            LauncherFrame.updateProgress(index, libraries.size)
-            it.assets.forEach { it.download(libraryFolder) }
-        }
+        launcher.progressHandler("Downloading libraries", 0.0)
+        launcher.manifest.libraries.filterMatchesRule().flatMap { it.assets }
+            .download(libraryFolder, progressHandler = launcher.progressHandler)
 
         return Result(clientJar, libraryFolder)
     }
@@ -41,5 +38,5 @@ object DownloadLibraries : LaunchStage<DownloadLibraries.Result> {
     data class Result(
         val clientJar: File,
         val librariesFolder: File
-    ) : LaunchResult
+    )
 }

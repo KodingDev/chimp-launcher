@@ -3,7 +3,6 @@ package dev.koding.launcher.launch.stages
 import dev.koding.launcher.data.minecraft.manifest.filterMatchesRule
 import dev.koding.launcher.data.minecraft.manifest.getLocation
 import dev.koding.launcher.data.minecraft.manifest.native
-import dev.koding.launcher.launch.LaunchResult
 import dev.koding.launcher.launch.LaunchStage
 import dev.koding.launcher.launch.MinecraftLauncher
 import dev.koding.launcher.util.system.extractZip
@@ -34,5 +33,5 @@ object SetupNatives : LaunchStage<SetupNatives.Result> {
 
     data class Result(
         val nativesFolder: File
-    ) : LaunchResult
+    )
 }
