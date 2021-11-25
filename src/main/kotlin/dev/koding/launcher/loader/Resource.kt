@@ -1,5 +1,6 @@
 package dev.koding.launcher.loader
 
+import dev.koding.launcher.launch.ResourcesDirectory
 import dev.koding.launcher.util.json
 import dev.koding.launcher.util.system.sha1
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +40,8 @@ data class UrlResource(
 
         override suspend fun load(manager: ResourceManager, resource: UrlResource): LoadedResource<*> {
             val parsed = withContext(Dispatchers.Default) { URL(resource.url) }
-            val target = manager.root.resolve("${parsed.host}/${parsed.path}")
+            val target = manager.config[ResourcesDirectory]?.resolve("${parsed.host}/${parsed.path}")
+                ?: error("No resources directory specified")
             val loaded = LoadedResource(resource, target)
 
             if (target.exists() && resource.sha1 == null) return loaded

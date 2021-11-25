@@ -1,6 +1,6 @@
 package dev.koding.launcher.util
 
-import dev.koding.launcher.Launcher
+import dev.koding.launcher.loader.ResourceManager
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.features.json.*
@@ -28,6 +28,6 @@ val httpClient = HttpClient {
 
 suspend fun ApplicationCall.respondResource(resource: String) =
     respondBytes(
-        Launcher::class.java.getResourceAsStream(resource)?.readBytes() ?: error("Invalid resource"),
+        ResourceManager::class.java.getResourceAsStream(resource)?.readBytes() ?: error("Invalid resource"),
         ContentType.Text.Html
     )

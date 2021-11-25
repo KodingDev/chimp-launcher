@@ -1,14 +1,22 @@
 package dev.koding.launcher.loader
 
-import dev.koding.launcher.Launcher
+import dev.koding.launcher.launch.Config
 
 class ResourceManager {
+
+    companion object {
+        operator fun invoke(block: ResourceManager.() -> Unit): ResourceManager {
+            val resourceManager = ResourceManager()
+            resourceManager.block()
+            return resourceManager
+        }
+    }
 
     private val resources = mutableMapOf<String, LoadedResource<*>>()
     private val loaders = hashMapOf<Class<*>, ResourceLoader<*>>()
 
     val resolvers = arrayListOf<ResourceResolver>()
-    val root = Launcher.home.resolve("resources")
+    val config = Config()
 
     @Suppress("UNCHECKED_CAST")
     suspend fun <T : Resource> load(resource: T): LoadedResource<*>? {

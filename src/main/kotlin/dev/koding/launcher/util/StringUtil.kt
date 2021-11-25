@@ -2,11 +2,7 @@
 
 package dev.koding.launcher.util
 
-import dev.koding.launcher.Launcher
-import dev.koding.launcher.loader.FileResource
-import dev.koding.launcher.loader.NamedResource
-import dev.koding.launcher.loader.Resource
-import dev.koding.launcher.loader.UrlResource
+import dev.koding.launcher.loader.*
 import io.ktor.client.request.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
@@ -40,7 +36,7 @@ inline fun <reified T> File.json(): T = readText().json()
 
 suspend inline fun <reified T> String.fromUrl(): T = httpClient.get<String>(this).let { json.decodeFromString(it) }
 inline fun <reified T> readResource(name: String): T? =
-    Launcher::class.java.getResourceAsStream(name)?.let { json.decodeFromStream(it) }
+    ResourceManager::class.java.getResourceAsStream(name)?.let { json.decodeFromStream(it) }
 
 fun String.replaceParams(vararg params: Pair<String, Any>) =
     params.fold(this) { acc, (key, value) -> acc.replace("\${${key}}", value.toString()) }
