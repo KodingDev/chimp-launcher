@@ -13,7 +13,6 @@ class ProfileLoader(private val config: ProfileConfig, private val resourceManag
     private val profileHome = Launcher.home.resolve("profiles/${config.name}")
 
     suspend fun load() {
-        // TODO: Load Minecraft profile JSONs automatically
         logger.info { "Loading profile: ${config.name}" }
         logger.info { "Loading resources" }
 
@@ -47,7 +46,7 @@ class ProfileLoader(private val config: ProfileConfig, private val resourceManag
 
     suspend fun start() {
         logger.info { "Starting profile: ${config.name}" }
-        val manifest = resourceManager.getManifest(config.launch.profile)
+        val manifest = LauncherManifest.load(resourceManager, config.launch.profile)
         Launcher.launch(
             manifest.copy(
                 arguments = (manifest.arguments ?: LauncherManifest.Arguments()) + LauncherManifest.Arguments(game =

@@ -13,8 +13,7 @@ import dev.koding.launcher.data.launcher.RemoteConfig
 import dev.koding.launcher.data.minecraft.assets.AssetIndex
 import dev.koding.launcher.data.minecraft.assets.toAsset
 import dev.koding.launcher.data.minecraft.manifest.*
-import dev.koding.launcher.loader.ProfileLoader
-import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.loader.*
 import dev.koding.launcher.loader.resolvers.MinecraftVersionResolver
 import dev.koding.launcher.util.fromUrl
 import dev.koding.launcher.util.json
@@ -39,14 +38,19 @@ import javax.swing.*
 import kotlin.system.exitProcess
 
 // TODO: Make this a class
+// TODO: Separate this into stages
 object Launcher {
 
     private val logger = KotlinLogging.logger {}
 
     val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
 
-    val resourceManager = ResourceManager {
+    val resourceManager = ResourceManager().apply {
         +MinecraftVersionResolver
+
+        +NamedResource
+        +UrlResource
+        +FileResource
     }
 
     init {
@@ -278,8 +282,8 @@ suspend fun main() {
         ?: exitProcess(0)
 
     val profile = config.profiles.firstOrNull { it.name == choice } ?: error("Invalid profile")
-    val profileConfig =
-        Launcher.resourceManager.loadAs<ProfileConfig>(profile.resource) ?: error("Failed to load config")
+    val profileConfig = Launcher.resourceManager.load(profile.resource)?.json<ProfileConfig>()
+        ?: error("Failed to load config")
     val loader = ProfileLoader(profileConfig, Launcher.resourceManager)
 
     loader.load()

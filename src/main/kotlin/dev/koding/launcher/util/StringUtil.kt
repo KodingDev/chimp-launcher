@@ -3,12 +3,19 @@
 package dev.koding.launcher.util
 
 import dev.koding.launcher.Launcher
+import dev.koding.launcher.loader.FileResource
+import dev.koding.launcher.loader.NamedResource
+import dev.koding.launcher.loader.Resource
+import dev.koding.launcher.loader.UrlResource
 import io.ktor.client.request.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import java.io.File
 import java.security.MessageDigest
 import java.util.*
@@ -17,6 +24,14 @@ import java.util.*
 val json = Json {
     ignoreUnknownKeys = true
     prettyPrint = true
+
+    serializersModule = SerializersModule {
+        polymorphic(Resource::class) {
+            subclass(NamedResource::class)
+            subclass(UrlResource::class)
+            subclass(FileResource::class)
+        }
+    }
 }
 
 inline fun <reified T> T.toJson(): String = json.encodeToString(this)

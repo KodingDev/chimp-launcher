@@ -2,8 +2,8 @@
 
 package dev.koding.launcher.data.minecraft.manifest
 
+import dev.koding.launcher.loader.NamedResource
 import dev.koding.launcher.loader.ResourceManager
-import dev.koding.launcher.util.json
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,11 +27,12 @@ data class LauncherManifest(
 ) {
     companion object {
         suspend fun load(resourceManager: ResourceManager, name: String): LauncherManifest {
-            val resource = resourceManager.getOrResolve(name)?.file ?: error("Invalid resource")
-            val manifest = resource.json<LauncherManifest>()
-
+            val manifest =
+                resourceManager.load(NamedResource(name))?.json<LauncherManifest>() ?: error("Invalid resource")
             if (manifest.inheritsFrom != null) {
-                val sub = resourceManager.getManifest("profile:${manifest.inheritsFrom}")
+                val sub =
+                    resourceManager.load(NamedResource("profile:${manifest.inheritsFrom}"))?.json<LauncherManifest>()
+                        ?: error("Invalid launcher manifest")
                 return manifest.copy(
                     arguments = (manifest.arguments ?: Arguments()) + (sub.arguments ?: Arguments()),
                     downloads = sub.downloads ?: manifest.downloads,
