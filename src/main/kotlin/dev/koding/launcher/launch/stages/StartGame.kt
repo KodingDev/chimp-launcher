@@ -1,6 +1,7 @@
 package dev.koding.launcher.launch.stages
 
 import dev.koding.launcher.auth.AuthData
+import dev.koding.launcher.auth.CLIENT_ID
 import dev.koding.launcher.data.minecraft.manifest.assets
 import dev.koding.launcher.data.minecraft.manifest.filterMatchesRule
 import dev.koding.launcher.data.minecraft.manifest.getJavaPath
@@ -65,7 +66,9 @@ object StartGame : LaunchStage<Process> {
                 "auth_access_token" to authentication.token.accessToken,
                 "user_type" to "mojang",
                 "version_type" to launcher.manifest.type,
-                "user_properties" to "{}"
+                "user_properties" to "{}",
+                "clientid" to CLIENT_ID,
+                "auth_xuid" to "" // May be needed in the future?
             )
         }
 

@@ -16,73 +16,51 @@ import dev.koding.launcher.util.readResource
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.system.configureLogging
 import dev.koding.launcher.util.ui.applySwingTheme
-import dev.koding.launcher.util.ui.content
-import dev.koding.launcher.util.ui.frame
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
-import java.awt.BorderLayout
-import java.awt.Component
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.config.Configurator
 import java.io.File
-import javax.swing.*
 import kotlin.system.exitProcess
 
-object LauncherFrame {
-    private var frame: JFrame? = null
+private val resourceManager = ResourceManager {
+    +MinecraftVersionResolver
 
-    private val log = JTextArea().apply { isEditable = false }
-    private val progress = JProgressBar()
-    private val status = JLabel("Starting game...").apply { alignmentX = Component.CENTER_ALIGNMENT }
-
-    fun create() {
-        frame = frame(size = 600 to 400) {
-            content {
-                layout = BorderLayout()
-
-                JScrollPane(log) + BorderLayout.CENTER
-                panel {
-                    padding = 10
-
-                    +status
-                    +verticalSpace(10)
-                    +progress
-                } + BorderLayout.SOUTH
-            }
-        }
-    }
-
-    fun cleanup() {
-        frame ?: return
-        frame!!.isVisible = false
-        frame!!.dispose()
-    }
-
-    fun update(status: String? = null, progress: Int? = null) {
-        progress?.let { this.progress.value = it }
-        status?.let { this.status.text = it }
-    }
-
-    fun log(message: String) {
-        log.append(message)
-        log.caretPosition = log.document.length
-    }
+    +NamedResource
+    +UrlResource
+    +FileResource
 }
 
-suspend fun main() {
+suspend fun main(args: Array<String>) {
     configureLogging()
-    applySwingTheme()
 
+    val parser = ArgParser("chimp-launcher")
+    val profile by parser.option(
+        ArgType.String,
+        "profile",
+        description = "The profile to use"
+    )
+    val debug by parser.option(
+        ArgType.Boolean,
+        "debug",
+        description = "Enable debug mode"
+    )
+    parser.parse(args)
+
+    if (debug == true) Configurator.setAllLevels(LogManager.getRootLogger().name, Level.DEBUG)
+    if (profile != null) return launchProfile(File(profile!!).json(), resourceManager)
+    launch()
+}
+
+private suspend fun launch() {
+    applySwingTheme()
     LauncherFrame.create()
     LauncherFrame.update("Loading profiles")
-
-    val resourceManager = ResourceManager {
-        +MinecraftVersionResolver
-
-        +NamedResource
-        +UrlResource
-        +FileResource
-    }
 
     val configPath = System.getProperty("launcher.remoteConfig")?.let { File(it) }
     val remoteConfig = configPath?.json()
@@ -94,17 +72,20 @@ suspend fun main() {
     val profileConfig = resourceManager.load(profile.resource)?.json<ProfileConfig>()
         ?: error("Failed to load config")
 
+    launchProfile(profileConfig, resourceManager)
+}
+
+private suspend fun launchProfile(profile: ProfileConfig, resourceManager: ResourceManager) {
     val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
-    val loader = profileConfig.loader(resourceManager) {
+    val loader = profile.loader(resourceManager) {
         config[ResourcesDirectory] = home.resolve("resources")
         config[LauncherDirectory] = home.resolve("launcher")
-        config[GameDirectory] = home.resolve("profiles/${profileConfig.name}")
+        config[GameDirectory] = home.resolve("profiles/${profile.name}")
 
         progressHandler = { name, progress -> LauncherFrame.update(name, progress?.times(100)?.toInt()) }
     }
 
     loader.load()
-
     val process = loader.start() ?: return
     LauncherFrame.cleanup()
     withContext(Dispatchers.IO) { process.waitFor() }

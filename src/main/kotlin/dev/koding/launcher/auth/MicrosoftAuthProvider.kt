@@ -27,7 +27,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.random.Random
 
-private const val CLIENT_ID = "92b1e10b-a6d8-4411-bcc8-d17c79c85aa7"
+const val CLIENT_ID = "92b1e10b-a6d8-4411-bcc8-d17c79c85aa7"
 private const val SCOPES = "XboxLive.signin XboxLive.offline_access"
 private const val REDIRECT_URI = "http://localhost:8080/"
 
