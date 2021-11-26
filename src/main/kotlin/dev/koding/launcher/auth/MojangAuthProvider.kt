@@ -6,7 +6,7 @@ import dev.koding.launcher.util.json
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.ui.alignX
 import dev.koding.launcher.util.ui.content
-import dev.koding.launcher.util.ui.frame
+import dev.koding.launcher.util.ui.dialog
 import io.ktor.client.features.*
 import io.ktor.util.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -42,7 +42,7 @@ class MojangAuthProvider : AuthProvider() {
         val password = JPasswordField("")
 
         suspendCoroutine<Boolean> { cont ->
-            frame(size = 400 to 200) {
+            dialog(size = 400 to 200) {
                 content {
                     padding = 10
 
@@ -61,7 +61,7 @@ class MojangAuthProvider : AuthProvider() {
 
                         button("Login") {
                             cont.resume(true)
-                            this@frame.dispose()
+                            this@dialog.dispose()
                         } + BorderLayout.CENTER
                     }.alignX(Component.LEFT_ALIGNMENT)
                 }

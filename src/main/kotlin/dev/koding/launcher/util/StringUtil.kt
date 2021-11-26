@@ -34,7 +34,10 @@ inline fun <reified T> T.toJson(): String = json.encodeToString(this)
 inline fun <reified T> String.json(): T = json.decodeFromString(this)
 inline fun <reified T> File.json(): T = readText().json()
 
-suspend inline fun <reified T> String.fromUrl(): T = httpClient.get<String>(this).let { json.decodeFromString(it) }
+suspend inline fun <reified T> String.fromUrl(): T = httpClient.get<String>(this) {
+    parameter("_", System.currentTimeMillis())
+}.let { json.decodeFromString(it) }
+
 inline fun <reified T> readResource(name: String): T? =
     ResourceManager::class.java.getResourceAsStream(name)?.let { json.decodeFromStream(it) }
 

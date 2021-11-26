@@ -20,9 +20,8 @@ fun Asset.matches(file: File): Boolean {
 }
 
 fun Asset.getLocation(root: File, strict: Boolean = false): File {
-    val url = URL(this.url)
     return if (strict) root
-    else root.resolve(path ?: url.file.split("/").last())
+    else root.resolve(path ?: URL(this.url).path.split("/").last())
 }
 
 fun Asset.download(root: File, strict: Boolean = false): File {
@@ -88,10 +87,11 @@ fun List<LauncherManifest.Library>.filterMatchesRule() =
     filter { it.rules.matches(Rule.Action.ALLOW) == Rule.Action.ALLOW }
 
 
-val LauncherManifest.Library.asset: Asset?
-    get() = downloads?.artifact ?: url?.let { url ->
+val LauncherManifest.Library.asset: Asset
+    get() {
+        downloads?.artifact?.let { return it }
         val path = name.split(":").let { "${it[0].replace(".", "/")}/${it[1]}/${it[2]}/${it[1]}-${it[2]}.jar" }
-        Asset("$url$path", path = path)
+        return Asset(url = if (url != null) "$url$path" else null, path = path)
     }
 
 val LauncherManifest.Library.assets

@@ -2,10 +2,7 @@ package dev.koding.launcher.launch.stages
 
 import dev.koding.launcher.auth.AuthData
 import dev.koding.launcher.auth.CLIENT_ID
-import dev.koding.launcher.data.minecraft.manifest.assets
-import dev.koding.launcher.data.minecraft.manifest.filterMatchesRule
-import dev.koding.launcher.data.minecraft.manifest.getJavaPath
-import dev.koding.launcher.data.minecraft.manifest.toFilteredArray
+import dev.koding.launcher.data.minecraft.manifest.*
 import dev.koding.launcher.launch.GameDirectory
 import dev.koding.launcher.launch.LaunchStage
 import dev.koding.launcher.launch.MinecraftLauncher
@@ -37,10 +34,10 @@ object StartGame : LaunchStage<Process> {
         val classpath = listOf(
             *launcher.manifest.libraries.filterMatchesRule()
                 .flatMap { it.assets }
-                .map { downloadLibraries.librariesFolder.resolve(it.path ?: "").absolutePath }
+                .map { it.getLocation(downloadLibraries.librariesFolder).absolutePath }
                 .toTypedArray(),
             downloadLibraries.clientJar.absolutePath
-        ).joinToString(separator = File.pathSeparator)
+        ).distinct().joinToString(separator = File.pathSeparator)
 
         val commandLine = listOf(
             getJavaPath(downloadJava.javaHome).absolutePath ?: error("No Java version"),
@@ -53,6 +50,7 @@ object StartGame : LaunchStage<Process> {
         ).map {
             it.replaceParams(
                 "natives_directory" to setupNatives.nativesFolder.absolutePath,
+                "library_directory" to downloadLibraries.librariesFolder,
                 "launcher_name" to "chimp-launcher",
                 "launcher_version" to "1.0.0",
                 "classpath" to classpath,
@@ -68,7 +66,8 @@ object StartGame : LaunchStage<Process> {
                 "version_type" to launcher.manifest.type,
                 "user_properties" to "{}",
                 "clientid" to CLIENT_ID,
-                "auth_xuid" to "" // May be needed in the future?
+                "auth_xuid" to "", // May be needed in the future?
+                "classpath_separator" to File.pathSeparator
             )
         }
 

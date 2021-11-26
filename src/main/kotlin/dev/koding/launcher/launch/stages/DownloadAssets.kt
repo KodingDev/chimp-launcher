@@ -31,7 +31,7 @@ object DownloadAssets : LaunchStage<DownloadAssets.Result> {
         logger.info { "Downloading assets" }
         launcher.progressHandler("Downloading assets", 0.0)
         assetIndex.objects.map { it.toAsset() }
-            .download(folder.resolve("objects"), progressHandler = launcher.progressHandler)
+            .download(folder.resolve("objects"), progressHandler = launcher.progressHandler, threads = 10)
         return Result(folder)
     }
 

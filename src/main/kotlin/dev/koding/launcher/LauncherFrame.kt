@@ -7,7 +7,7 @@ import java.awt.Component
 import javax.swing.*
 
 object LauncherFrame {
-    private var frame: JFrame? = null
+    var frame: JFrame? = null
 
     private val log by lazy { JTextArea().apply { isEditable = false } }
     private val progress by lazy { JProgressBar() }

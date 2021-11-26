@@ -22,11 +22,10 @@ class ProfileLoader(
     val config = Config()
 
     suspend fun load() {
-        resourceManager.config += config
-
         logger.info { "Loading profile: ${profile.name}" }
         logger.info { "Loading resources" }
 
+        resourceManager.config += config
         progressHandler("Loading resources", 0.0)
         profile.resources.forEachIndexed { i, it ->
             progressHandler(null, i / profile.resources.size.toDouble())

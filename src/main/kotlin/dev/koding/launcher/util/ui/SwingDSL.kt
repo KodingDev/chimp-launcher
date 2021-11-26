@@ -10,13 +10,16 @@ import javax.imageio.ImageIO
 import javax.swing.*
 
 private val icon = ImageIO.read(LauncherFrame::class.java.getResourceAsStream("/assets/logo.png"))
+private var themeApplied = false
 
 fun applySwingTheme() {
+    if (themeApplied) return
     System.setProperty("apple.laf.useScreenMenuBar", "true")
     System.setProperty("apple.awt.application.name", "Chimp Launcher")
     System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua")
     runCatching { Taskbar.getTaskbar().iconImage = icon }
     FlatDarkLaf.setup()
+    themeApplied = true
 }
 
 @DslMarker
@@ -37,7 +40,28 @@ fun frame(
     }
 
 @SwingDSL
+fun dialog(
+    title: String = "Chimp Launcher",
+    frame: JFrame? = LauncherFrame.frame,
+    size: Pair<Int, Int>? = null,
+    block: JDialog.() -> Unit
+): JDialog {
+    applySwingTheme()
+    return JDialog(frame, title, true).apply(block).apply {
+        if (size != null) setSize(size.first, size.second)
+        isResizable = false
+        setLocationRelativeTo(null)
+        isVisible = true
+    }
+}
+
+@SwingDSL
 fun JFrame.content(content: ContentBuilder.() -> Unit) {
+    contentPane = ContentBuilder().apply(content).panel
+}
+
+@SwingDSL
+fun JDialog.content(content: ContentBuilder.() -> Unit) {
     contentPane = ContentBuilder().apply(content).panel
 }
 

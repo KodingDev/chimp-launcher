@@ -65,7 +65,7 @@ data class LauncherManifest(
 
     @Serializable
     data class Logging(
-        val client: Config
+        val client: Config? = null,
     ) {
         @Serializable
         data class Config(
@@ -97,13 +97,13 @@ data class LauncherManifest(
 
     @Serializable
     data class Downloads(
-        val client: Asset
+        val client: Asset? = null
     )
 }
 
 @Serializable
 data class Asset(
-    val url: String,
+    val url: String? = null,
     val size: Long? = null,
     val id: String? = null,
     val sha1: String? = null,

@@ -2,7 +2,7 @@ package dev.koding.launcher.util.system
 
 import dev.koding.launcher.util.ui.alignX
 import dev.koding.launcher.util.ui.content
-import dev.koding.launcher.util.ui.frame
+import dev.koding.launcher.util.ui.dialog
 import dev.koding.launcher.util.ui.sized
 import java.awt.BorderLayout
 import java.awt.Component
@@ -21,7 +21,7 @@ object SwingUtil {
 
     suspend fun askSelection(prompt: String, vararg options: String) =
         suspendCoroutine<String?> { cont ->
-            frame {
+            dialog {
                 content {
                     padding = 10
 
@@ -37,7 +37,7 @@ object SwingUtil {
 
                         button("Select") {
                             cont.resume(selection.selectedItem?.toString() ?: return@button)
-                            this@frame.dispose()
+                            this@dialog.dispose()
                         }.apply { preferredSize = Dimension(300, 25) } + BorderLayout.CENTER
                     }
 
@@ -48,7 +48,8 @@ object SwingUtil {
                     })
                 }
 
+                requestFocusInWindow()
                 pack()
-            }.requestFocus()
+            }
         }
 }
