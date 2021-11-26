@@ -15,14 +15,10 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
-import java.awt.Desktop
-import java.net.URI
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.random.Random
@@ -95,12 +91,7 @@ class MicrosoftAuthProvider : AuthProvider() {
             }
         }
         logger.info { "Authenticate using $url" }
-
-        if (Desktop.isDesktopSupported()) {
-            withContext(Dispatchers.IO) {
-                Desktop.getDesktop().browse(URI(url))
-            }
-        }
+        SwingUtil.browse(url)
 
         logger.info { "Waiting for authorization code" }
         val code = suspendCoroutine<String> { cont ->

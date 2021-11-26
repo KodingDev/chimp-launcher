@@ -6,9 +6,11 @@ import dev.koding.launcher.util.ui.dialog
 import dev.koding.launcher.util.ui.sized
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.net.URI
 import javax.swing.JComboBox
 import javax.swing.JLabel
 import javax.swing.JOptionPane
@@ -52,4 +54,10 @@ object SwingUtil {
                 pack()
             }
         }
+
+    fun browse(url: String) {
+        val desktop = Desktop.getDesktop()
+        if (desktop.isSupported(Desktop.Action.BROWSE)) return desktop.browse(URI(url))
+        Runtime.getRuntime().exec("xdg-open $url")
+    }
 }

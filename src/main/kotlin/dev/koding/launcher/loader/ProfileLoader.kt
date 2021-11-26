@@ -41,8 +41,8 @@ class ProfileLoader(
 
             when (data.action) {
                 ProfileConfig.File.Action.COPY -> {
-                    val resource =
-                        data.resource?.let { resourceManager.load(NamedResource(it)) } ?: return@forEachIndexed
+                    val resource = data.resource?.let { resourceManager.load(NamedResource(it)) }
+                        ?: return@forEachIndexed
                     logger.debug { "Copying file: ${resource.file.absolutePath} -> ${file.absolutePath}" }
                     resource.file.copyTo(file, overwrite = true)
                 }

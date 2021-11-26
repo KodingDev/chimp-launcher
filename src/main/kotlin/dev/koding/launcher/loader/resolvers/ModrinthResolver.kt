@@ -19,7 +19,7 @@ object ModrinthResolver : ResourceResolver {
         val target = "modrinth/${mod}/${versionName}/${mod}-${versionName}.jar"
         val targetFile = manager.config[ResourcesDirectory]?.resolve(target)
             ?: error("No resources directory configured")
-        if (targetFile.exists()) return manager.load(FileResource(resource.toString(), target))
+        if (targetFile.exists()) return manager.load(FileResource(resource.toString(), targetFile.absolutePath))
 
         logger.debug { "Searching for modrinth resource $resource" }
         val result = ModrinthAPI.search(mod)

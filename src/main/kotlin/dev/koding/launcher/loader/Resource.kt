@@ -1,6 +1,7 @@
 package dev.koding.launcher.loader
 
 import dev.koding.launcher.launch.ResourcesDirectory
+import dev.koding.launcher.util.download
 import dev.koding.launcher.util.json
 import dev.koding.launcher.util.system.sha1
 import kotlinx.coroutines.Dispatchers
@@ -44,17 +45,12 @@ data class UrlResource(
             val parsed = withContext(Dispatchers.Default) { URL(resource.url) }
             val target = manager.config[ResourcesDirectory]?.resolve(resource.path ?: "${parsed.host}/${parsed.path}")
                 ?: error("No resources directory specified")
+
             val loaded = LoadedResource(resource, target)
             if (target.exists() && !resource.volatile && (resource.sha1 == null || target.sha1 == resource.sha1)) return loaded
 
             logger.info { "Downloading ${resource.name} to ${target.absolutePath}" }
-            target.parentFile.mkdirs()
-
-            withContext(Dispatchers.IO) {
-                parsed.openStream().use { input ->
-                    target.outputStream().use { output -> input.copyTo(output) }
-                }
-            }
+            parsed.download(target)
 
             logger.debug { "Downloaded ${resource.name} with SHA1 ${target.sha1}" }
             return loaded
