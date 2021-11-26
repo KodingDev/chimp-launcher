@@ -26,6 +26,7 @@ import org.apache.logging.log4j.core.config.Configurator
 import java.io.File
 import kotlin.system.exitProcess
 
+// TODO: Clean up this class *somehow*
 private val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
 private val resourceManager = ResourceManager {
     +MinecraftVersionResolver

@@ -10,8 +10,9 @@ private const val MODRINTH_API_URL = "https://api.modrinth.com/api/v1"
 
 object ModrinthAPI {
 
-    suspend fun search(query: String) = httpClient.get<SearchResponse>("$MODRINTH_API_URL/mod") {
+    suspend fun search(query: String, limit: Int = 5) = httpClient.get<SearchResponse>("$MODRINTH_API_URL/mod") {
         parameter("query", query)
+        parameter("limit", limit)
     }
 
     suspend fun getVersions(modId: String) =
@@ -21,7 +22,7 @@ object ModrinthAPI {
     data class Version(
         val id: String,
         @SerialName("mod_id") val modId: String,
-        val name: String,
+        @SerialName("version_number") val versionNumber: String,
         val files: List<File>
     ) {
         @Serializable

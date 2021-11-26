@@ -26,14 +26,25 @@ object ModrinthResolver : ResourceResolver {
         if (result.hits.isEmpty()) return null
 
         logger.debug { "Fetching versions for modrinth resource $resource" }
-        val hit = result.hits.first()
+        val hit = result.hits.sortedBy {
+            if (it.slug.equals(mod, true)) return@sortedBy 0
+            if (it.slug.replace("-", "").equals(mod, true)) return@sortedBy 5
+            if (it.modId.equals(mod, true)) return@sortedBy 5
+            10
+        }.firstOrNull() ?: return null
+        println(hit)
+
         val versions = ModrinthAPI.getVersions(hit.modId)
         if (versions.isEmpty()) return null
 
         val version = (if (resource.path.size == 1) versions.first()
-        else versions.find { it.name == resource.path[1] }) ?: return null
+        else versions.find { it.versionNumber == resource.path[1] }) ?: return null
 
-        val file = version.files.firstOrNull() ?: return null
+        val file = version.files.firstOrNull() ?: return run {
+            logger.debug { "No version found for modrinth resource $resource" }
+            null
+        }
+
         return manager.load(
             UrlResource(
                 resource.toString(),
