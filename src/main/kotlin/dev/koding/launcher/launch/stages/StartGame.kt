@@ -3,6 +3,7 @@ package dev.koding.launcher.launch.stages
 import dev.koding.launcher.auth.AuthData
 import dev.koding.launcher.auth.CLIENT_ID
 import dev.koding.launcher.data.minecraft.manifest.*
+import dev.koding.launcher.launch.ExtraArgs
 import dev.koding.launcher.launch.GameDirectory
 import dev.koding.launcher.launch.LaunchStage
 import dev.koding.launcher.launch.MinecraftLauncher
@@ -41,12 +42,13 @@ object StartGame : LaunchStage<Process> {
 
         val commandLine = listOf(
             getJavaPath(downloadJava.javaHome).absolutePath ?: error("No Java version"),
-            *launcher.manifest.arguments?.jvm?.toFilteredArray()?.takeUnless { it.isEmpty() }
-                ?: arrayOf("-Djava.library.path=\${natives_directory}", "-cp", "\${classpath}"),
+            *((launcher.manifest.arguments?.jvm?.toFilteredArray()?.takeUnless { it.isEmpty() }
+                ?: arrayOf("-Djava.library.path=\${natives_directory}", "-cp", "\${classpath}"))
+                    + (launcher.config[ExtraArgs]?.jvm?.toFilteredArray() ?: emptyArray())),
             launcher.manifest.mainClass,
-            *(launcher.manifest.arguments?.game?.toFilteredArray()?.takeUnless { it.isEmpty() }
+            *((launcher.manifest.arguments?.game?.toFilteredArray()?.takeUnless { it.isEmpty() }
                 ?: launcher.manifest.minecraftArguments?.split(" ")?.toTypedArray()
-                ?: emptyArray()),
+                ?: emptyArray()) + (launcher.config[ExtraArgs]?.game?.toFilteredArray() ?: emptyArray())),
         ).map {
             it.replaceParams(
                 "natives_directory" to setupNatives.nativesFolder.absolutePath,

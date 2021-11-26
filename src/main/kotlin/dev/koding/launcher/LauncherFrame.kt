@@ -1,5 +1,6 @@
 package dev.koding.launcher
 
+import dev.koding.launcher.util.ui.applySwingTheme
 import dev.koding.launcher.util.ui.content
 import dev.koding.launcher.util.ui.frame
 import java.awt.BorderLayout
@@ -14,6 +15,9 @@ object LauncherFrame {
     private val status by lazy { JLabel("Starting game...").apply { alignmentX = Component.CENTER_ALIGNMENT } }
 
     fun create() {
+        applySwingTheme()
+        if (frame != null && frame?.isVisible == true) return
+
         frame = frame(size = 600 to 400) {
             content {
                 layout = BorderLayout()

@@ -5,19 +5,13 @@ package dev.koding.launcher
 import dev.koding.launcher.data.launcher.LocalConfig
 import dev.koding.launcher.data.launcher.ProfileConfig
 import dev.koding.launcher.data.launcher.RemoteConfig
-import dev.koding.launcher.launch.GameDirectory
-import dev.koding.launcher.launch.LauncherDirectory
-import dev.koding.launcher.launch.ResourcesDirectory
-import dev.koding.launcher.launch.StartJarPath
+import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
+import dev.koding.launcher.launch.*
 import dev.koding.launcher.loader.*
 import dev.koding.launcher.loader.resolvers.MinecraftVersionResolver
-import dev.koding.launcher.util.fromUrl
-import dev.koding.launcher.util.json
-import dev.koding.launcher.util.minecraftHome
-import dev.koding.launcher.util.readResource
+import dev.koding.launcher.util.*
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.system.configureLogging
-import dev.koding.launcher.util.ui.applySwingTheme
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +42,7 @@ suspend fun main(args: Array<String>) {
     val profile by parser.option(ArgType.String, "profile", description = "The profile to use")
     val version by parser.option(ArgType.String, "version", description = "A Minecraft version to run")
     val debug by parser.option(ArgType.Boolean, "debug", description = "Enable debug mode")
+    val gui by parser.option(ArgType.Boolean, "gui", description = "Enable the GUI")
     val gameDirectory by parser.option(
         ArgType.String,
         "game-directory",
@@ -58,15 +53,22 @@ suspend fun main(args: Array<String>) {
         "launcher-directory",
         description = "The directory to use for the launcher (assets, libraries)"
     )
+    val arguments by parser.option(ListArgument, "args", description = "Arguments to pass to the game")
+    val jvm by parser.option(ListArgument, "jvm", description = "Arguments to pass to the JVM")
     val vanilla by parser.option(ArgType.String, "vanilla", description = "Start a version from the vanilla launcher")
     parser.parse(args)
 
     val vanillaHome = minecraftHome.takeIf { vanilla != null }
     val launchOptions = LaunchOptions(
         vanillaHome ?: gameDirectory?.let { File(it) }?.takeIf { it.exists() },
-        vanillaHome ?: launcherDirectory?.let { File(it) }?.takeIf { it.exists() }
+        vanillaHome ?: launcherDirectory?.let { File(it) }?.takeIf { it.exists() },
+        LauncherManifest.Arguments(
+            arguments?.map { LauncherManifest.Arguments.Argument(it) } ?: emptyList(),
+            jvm?.map { LauncherManifest.Arguments.Argument(it) } ?: emptyList()
+        )
     )
 
+    if (gui == true) LauncherFrame.create()
     if (debug == true) Configurator.setAllLevels(LogManager.getRootLogger().name, Level.DEBUG)
     if (vanilla != null) return launchVanilla(vanilla!!)
     if (version != null) return launchProfile(
@@ -79,7 +81,6 @@ suspend fun main(args: Array<String>) {
 }
 
 private suspend fun launch() {
-    applySwingTheme()
     LauncherFrame.create()
     LauncherFrame.update("Loading profiles")
 
@@ -115,6 +116,7 @@ private suspend fun launchVanilla(name: String) {
 
 private suspend fun launchProfile(profile: ProfileConfig, options: LaunchOptions = LaunchOptions()) {
     val loader = profile.loader(resourceManager) {
+        config[ExtraArgs] = options.arguments
         config[LauncherDirectory] = options.launcherDirectory ?: home.resolve("launcher")
         config[GameDirectory] = options.gameDirectory ?: home.resolve("profiles/${profile.name}")
 
@@ -131,5 +133,6 @@ private suspend fun launchProfile(profile: ProfileConfig, options: LaunchOptions
 data class LaunchOptions(
     val gameDirectory: File? = null,
     val launcherDirectory: File? = null,
+    val arguments: LauncherManifest.Arguments = LauncherManifest.Arguments(),
     val block: ProfileLoader.() -> Unit = {}
 )

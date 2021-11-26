@@ -1,5 +1,6 @@
 package dev.koding.launcher.launch
 
+import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import java.io.File
 
 class Config {
@@ -32,3 +33,4 @@ object JavaDirectory : ConfigValue<File>("javaDirectory")
 object LibraryDirectory : ConfigValue<File>("libraryDirectory")
 object ResourcesDirectory : ConfigValue<File>("resourcesDirectory")
 object StartJarPath : ConfigValue<File>("startJarPath")
+object ExtraArgs : ConfigValue<LauncherManifest.Arguments>("extraArgs")
