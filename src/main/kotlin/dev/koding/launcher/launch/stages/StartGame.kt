@@ -34,7 +34,7 @@ object StartGame : LaunchStage<Process> {
 
         val classpath = listOf(
             *launcher.manifest.libraries.filterMatchesRule()
-                .flatMap { it.assets }
+                .flatMap { it.assets.filter { asset -> !it.isNative(asset) } }
                 .map { it.getLocation(downloadLibraries.librariesFolder).absolutePath }
                 .toTypedArray(),
             downloadLibraries.clientJar.absolutePath

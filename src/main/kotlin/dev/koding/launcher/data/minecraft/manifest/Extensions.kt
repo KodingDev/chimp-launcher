@@ -84,8 +84,7 @@ operator fun LauncherManifest.Arguments.plus(other: LauncherManifest.Arguments) 
     )
 
 fun List<LauncherManifest.Library>.filterMatchesRule() =
-    filter { it.rules.matches(Rule.Action.ALLOW) == Rule.Action.ALLOW }
-
+    filter { it.rules.matches(Rule.Action.DISALLOW) == Rule.Action.ALLOW }
 
 val LauncherManifest.Library.asset: Asset
     get() {
@@ -97,11 +96,14 @@ val LauncherManifest.Library.asset: Asset
 val LauncherManifest.Library.assets
     get() = listOfNotNull(
         asset,
-        *(downloads?.classifiers?.values?.toTypedArray() ?: emptyArray())
+        *(downloads?.classifiers?.filterKeys { it !in OS.classifiers }?.values?.toTypedArray() ?: emptyArray())
     )
 
 val LauncherManifest.Library.native
-    get() = OS.type.names.mapNotNull { natives[it] }.firstOrNull()?.let { downloads?.classifiers?.get(it) }
+    get() = OS.type.names.firstNotNullOfOrNull { natives[it] }?.let { downloads?.classifiers?.get(it) }
+
+fun LauncherManifest.Library.isNative(asset: Asset) =
+    downloads?.classifiers?.entries?.firstOrNull { it.value == asset }?.key?.let { it in natives.values } ?: false
 
 suspend fun Collection<Asset>.download(root: File, progressHandler: ProgressHandler = { _, _ -> }, threads: Int = 5) {
     var i = 0

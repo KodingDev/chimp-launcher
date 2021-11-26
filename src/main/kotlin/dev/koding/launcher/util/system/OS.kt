@@ -9,6 +9,9 @@ object OS {
         UNKNOWN(emptyArray())
     }
 
+    val classifiers = Type.values().flatMap { it.names.toList() }
+        .map { "natives-$it" }
+
     val type: Type
         get() {
             val osName = System.getProperty("os.name")

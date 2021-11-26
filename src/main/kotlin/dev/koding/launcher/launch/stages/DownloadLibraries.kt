@@ -3,6 +3,7 @@ package dev.koding.launcher.launch.stages
 import dev.koding.launcher.data.minecraft.manifest.assets
 import dev.koding.launcher.data.minecraft.manifest.download
 import dev.koding.launcher.data.minecraft.manifest.filterMatchesRule
+import dev.koding.launcher.data.minecraft.manifest.native
 import dev.koding.launcher.launch.*
 import mu.KotlinLogging
 import java.io.File
@@ -26,7 +27,7 @@ object DownloadLibraries : LaunchStage<DownloadLibraries.Result> {
 
         logger.info { "Downloading libraries" }
         launcher.progressHandler("Downloading libraries", 0.0)
-        launcher.manifest.libraries.filterMatchesRule().flatMap { it.assets }
+        launcher.manifest.libraries.filterMatchesRule().flatMap { listOfNotNull(*it.assets.toTypedArray(), it.native) }
             .download(libraryFolder, progressHandler = launcher.progressHandler)
 
         return Result(clientJar, libraryFolder)

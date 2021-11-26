@@ -33,7 +33,8 @@ data class NamedResource(
 data class UrlResource(
     override val name: String,
     val url: String,
-    val sha1: String? = null
+    val sha1: String? = null,
+    val volatile: Boolean = false
 ) : Resource() {
     companion object : ResourceLoader<UrlResource> {
         private val logger = KotlinLogging.logger {}
@@ -43,7 +44,7 @@ data class UrlResource(
             val target = manager.config[ResourcesDirectory]?.resolve("${parsed.host}/${parsed.path}")
                 ?: error("No resources directory specified")
             val loaded = LoadedResource(resource, target)
-            if (target.exists() && (resource.sha1 == null || target.sha1 == resource.sha1)) return loaded
+            if (target.exists() && !resource.volatile && (resource.sha1 == null || target.sha1 == resource.sha1)) return loaded
 
             logger.info { "Downloading ${resource.name} to ${target.absolutePath}" }
             target.parentFile.mkdirs()
