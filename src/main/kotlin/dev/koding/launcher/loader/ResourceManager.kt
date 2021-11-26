@@ -44,7 +44,7 @@ data class ResourceLocation(
 }
 
 interface ResourceResolver {
-    suspend fun resolve(manager: ResourceManager, path: ResourceLocation): LoadedResource<*>?
+    suspend fun resolve(manager: ResourceManager, resource: ResourceLocation): LoadedResource<*>?
 }
 
 interface ResourceLoader<T : Resource> {

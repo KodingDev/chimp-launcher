@@ -7,9 +7,18 @@ import dev.koding.launcher.loader.*
 object MinecraftVersionResolver : ResourceResolver {
     private lateinit var versions: VersionManifest
 
-    override suspend fun resolve(manager: ResourceManager, path: ResourceLocation): LoadedResource<*>? {
+    override suspend fun resolve(manager: ResourceManager, resource: ResourceLocation): LoadedResource<*>? {
         if (!this::versions.isInitialized) versions = VersionManifest.fetch()
-        if (!path.namespace.equals("profile", true)) return null
-        return versions[path.path.first()]?.let { manager.load(UrlResource(path.toString(), it.url)) }
+        if (!resource.namespace.equals("profile", true)) return null
+        val version = resource.path.first()
+        return versions[version]?.let {
+            manager.load(
+                UrlResource(
+                    resource.toString(),
+                    it.url,
+                    path = "minecraft/versions/$version.json"
+                )
+            )
+        }
     }
 }

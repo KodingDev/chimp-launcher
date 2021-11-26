@@ -8,6 +8,7 @@ import dev.koding.launcher.data.launcher.RemoteConfig
 import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.launch.*
 import dev.koding.launcher.loader.*
+import dev.koding.launcher.loader.resolvers.FabricResolver
 import dev.koding.launcher.loader.resolvers.MinecraftVersionResolver
 import dev.koding.launcher.loader.resolvers.ModrinthResolver
 import dev.koding.launcher.util.*
@@ -29,6 +30,7 @@ private val home = File(System.getProperty("user.home")).resolve(".chimp-launche
 private val resourceManager = ResourceManager {
     +MinecraftVersionResolver
     +ModrinthResolver
+    +FabricResolver
 
     +NamedResource
     +UrlResource

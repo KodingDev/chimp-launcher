@@ -17,7 +17,6 @@ class ProfileLoader(
 ) {
 
     private val logger = KotlinLogging.logger {}
-    private var manifestBlock: (LauncherManifest) -> LauncherManifest = { it }
 
     var progressHandler: ProgressHandler = { _, _ -> }
     val config = Config()
@@ -66,7 +65,6 @@ class ProfileLoader(
                     minecraftArguments = it.minecraftArguments + profile.launch.arguments.joinToString(separator = " ")
                 )
             }
-//            .let(manifestBlock)
 
         val launcher = MinecraftLauncher(manifest)
         launcher.config += config
@@ -77,10 +75,6 @@ class ProfileLoader(
 
     fun launcher(build: MinecraftLauncher.() -> Unit) {
         this.build = build
-    }
-
-    fun manifest(block: (LauncherManifest) -> LauncherManifest) {
-        manifestBlock = block
     }
 
 }

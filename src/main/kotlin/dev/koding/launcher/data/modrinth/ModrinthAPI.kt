@@ -47,7 +47,7 @@ object ModrinthAPI {
     @Serializable
     data class ModResult(
         @SerialName("mod_id") val modId: String,
-        val title: String
+        val slug: String
     )
 
 }

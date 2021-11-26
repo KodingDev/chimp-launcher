@@ -27,12 +27,11 @@ data class LauncherManifest(
 ) {
     companion object {
         suspend fun load(resourceManager: ResourceManager, name: String): LauncherManifest {
-            val manifest =
-                resourceManager.load(NamedResource(name))?.json<LauncherManifest>() ?: error("Invalid resource")
+            val manifest = resourceManager.load(NamedResource(name))?.json<LauncherManifest>()
+                ?: error("Invalid resource")
             if (manifest.inheritsFrom != null) {
-                val sub =
-                    resourceManager.load(NamedResource("profile:${manifest.inheritsFrom}"))?.json<LauncherManifest>()
-                        ?: error("Invalid launcher manifest")
+                val sub = resourceManager.load(NamedResource("profile:${manifest.inheritsFrom}"))
+                    ?.json<LauncherManifest>() ?: error("Invalid launcher manifest")
                 return manifest.copy(
                     arguments = (manifest.arguments ?: Arguments()) + (sub.arguments ?: Arguments()),
                     downloads = sub.downloads ?: manifest.downloads,

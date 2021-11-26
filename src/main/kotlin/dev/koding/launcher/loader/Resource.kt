@@ -34,6 +34,7 @@ data class UrlResource(
     override val name: String,
     val url: String,
     val sha1: String? = null,
+    val path: String? = null,
     val volatile: Boolean = false
 ) : Resource() {
     companion object : ResourceLoader<UrlResource> {
@@ -41,7 +42,7 @@ data class UrlResource(
 
         override suspend fun load(manager: ResourceManager, resource: UrlResource): LoadedResource<*> {
             val parsed = withContext(Dispatchers.Default) { URL(resource.url) }
-            val target = manager.config[ResourcesDirectory]?.resolve("${parsed.host}/${parsed.path}")
+            val target = manager.config[ResourcesDirectory]?.resolve(resource.path ?: "${parsed.host}/${parsed.path}")
                 ?: error("No resources directory specified")
             val loaded = LoadedResource(resource, target)
             if (target.exists() && !resource.volatile && (resource.sha1 == null || target.sha1 == resource.sha1)) return loaded
