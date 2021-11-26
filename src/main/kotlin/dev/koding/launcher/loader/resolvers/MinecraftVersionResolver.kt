@@ -10,6 +10,6 @@ object MinecraftVersionResolver : ResourceResolver {
     override suspend fun resolve(manager: ResourceManager, path: ResourceLocation): LoadedResource<*>? {
         if (!this::versions.isInitialized) versions = VersionManifest.fetch()
         if (!path.namespace.equals("profile", true)) return null
-        return versions[path.path]?.let { manager.load(UrlResource(path.toString(), it.url)) }
+        return versions[path.path.first()]?.let { manager.load(UrlResource(path.toString(), it.url)) }
     }
 }

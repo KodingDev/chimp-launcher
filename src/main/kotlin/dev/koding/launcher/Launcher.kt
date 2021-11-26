@@ -9,6 +9,7 @@ import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.launch.*
 import dev.koding.launcher.loader.*
 import dev.koding.launcher.loader.resolvers.MinecraftVersionResolver
+import dev.koding.launcher.loader.resolvers.ModrinthResolver
 import dev.koding.launcher.util.*
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.system.configureLogging
@@ -27,6 +28,7 @@ import kotlin.system.exitProcess
 private val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
 private val resourceManager = ResourceManager {
     +MinecraftVersionResolver
+    +ModrinthResolver
 
     +NamedResource
     +UrlResource

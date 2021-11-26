@@ -14,7 +14,7 @@ import java.net.URL
 @Serializable
 sealed class Resource {
     abstract val name: String
-    val location get() = ResourceLocation(name.substringBefore(":"), name.substringAfter(":"))
+    val location get() = ResourceLocation(name.substringBefore(":"), name.substringAfter(":").split("/"))
 }
 
 @Serializable

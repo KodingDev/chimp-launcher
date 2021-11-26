@@ -38,9 +38,9 @@ class ResourceManager {
 
 data class ResourceLocation(
     val namespace: String,
-    val path: String
+    val path: List<String>
 ) {
-    override fun toString() = "$namespace:$path"
+    override fun toString() = "$namespace:${path.joinToString(separator = "/")}"
 }
 
 interface ResourceResolver {
