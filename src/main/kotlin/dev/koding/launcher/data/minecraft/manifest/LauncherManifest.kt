@@ -30,7 +30,7 @@ data class LauncherManifest(
             val manifest = resourceManager.load(NamedResource(name))?.json<LauncherManifest>()
                 ?: error("Invalid resource")
             if (manifest.inheritsFrom != null) {
-                val sub = resourceManager.load(NamedResource("profile:${manifest.inheritsFrom}"))
+                val sub = resourceManager.load(NamedResource("version:${manifest.inheritsFrom}"))
                     ?.json<LauncherManifest>() ?: error("Invalid launcher manifest")
                 return manifest.copy(
                     arguments = (manifest.arguments ?: Arguments()) + (sub.arguments ?: Arguments()),
