@@ -32,7 +32,6 @@ object ModrinthResolver : ResourceResolver {
             if (it.modId.equals(mod, true)) return@sortedBy 5
             10
         }.firstOrNull() ?: return null
-        println(hit)
 
         val versions = ModrinthAPI.getVersions(hit.modId)
         if (versions.isEmpty()) return null
