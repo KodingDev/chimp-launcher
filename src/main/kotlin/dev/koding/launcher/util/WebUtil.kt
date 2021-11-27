@@ -38,14 +38,12 @@ suspend fun ApplicationCall.respondResource(resource: String) =
 
 fun URL.download(file: File) {
     file.parentFile.mkdirs()
-    file.outputStream().use {
-        openConnection().apply {
-            setRequestProperty(
-                "User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
-            )
-        }.getInputStream().use {
-            it.copyTo(file.outputStream())
-        }
+    openConnection().apply {
+        setRequestProperty(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
+        )
+    }.getInputStream().use { input ->
+        file.outputStream().use { output -> input.copyTo(output) }
     }
 }

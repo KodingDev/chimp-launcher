@@ -84,7 +84,11 @@ object StartGame : LaunchStage<Process> {
                 .start()
         }
 
-        Runtime.getRuntime().addShutdownHook(Thread { process.destroy() })
+        Runtime.getRuntime().addShutdownHook(Thread {
+            if (!process.isAlive) return@Thread
+            logger.info { "Killing Minecraft" }
+            process.destroy()
+        })
         return process
     }
 }

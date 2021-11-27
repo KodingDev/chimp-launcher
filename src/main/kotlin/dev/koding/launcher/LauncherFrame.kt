@@ -5,7 +5,10 @@ import dev.koding.launcher.util.ui.content
 import dev.koding.launcher.util.ui.frame
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import javax.swing.*
+import kotlin.system.exitProcess
 
 object LauncherFrame {
     var frame: JFrame? = null
@@ -31,6 +34,10 @@ object LauncherFrame {
                     +progress
                 } + BorderLayout.SOUTH
             }
+
+            addWindowListener(object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent?) = exitProcess(0)
+            })
         }
     }
 
