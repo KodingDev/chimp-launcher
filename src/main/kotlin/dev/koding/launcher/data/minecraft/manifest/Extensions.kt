@@ -113,3 +113,5 @@ suspend fun Collection<Asset>.download(root: File, progressHandler: ProgressHand
         }
     }.joinAll()
 }
+
+fun List<String>.toArguments() = map { LauncherManifest.Arguments.Argument(it) }

@@ -3,6 +3,7 @@ package dev.koding.launcher.loader
 import dev.koding.launcher.data.launcher.ProfileConfig
 import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.data.minecraft.manifest.plus
+import dev.koding.launcher.data.minecraft.manifest.toArguments
 import dev.koding.launcher.launch.Config
 import dev.koding.launcher.launch.GameDirectory
 import dev.koding.launcher.launch.MinecraftLauncher
@@ -60,8 +61,11 @@ class ProfileLoader(
         val manifest = LauncherManifest.load(resourceManager, profile.launch.profile)
             .let {
                 it.copy(
-                    arguments = (it.arguments ?: LauncherManifest.Arguments()) + LauncherManifest.Arguments(game =
-                    profile.launch.arguments.map { arg -> LauncherManifest.Arguments.Argument(arg) }),
+                    arguments = (it.arguments ?: LauncherManifest.Arguments()) +
+                            LauncherManifest.Arguments(
+                                game = profile.launch.arguments.toArguments(),
+                                jvm = profile.launch.jvm.toArguments()
+                            ),
                     minecraftArguments = it.minecraftArguments + profile.launch.arguments.joinToString(separator = " ")
                 )
             }

@@ -21,7 +21,8 @@ data class ProfileConfig(
     @Serializable
     data class Launch(
         val profile: String,
-        val arguments: List<String> = emptyList()
+        val arguments: List<String> = emptyList(),
+        val jvm: List<String> = emptyList()
     )
 
     @Serializable
