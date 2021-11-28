@@ -26,8 +26,8 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          name: "Beta #${{ github.run_id }}"
+          name: "Beta #${{ github.job }}"
           prerelease: true
           artifacts: "build/libs/*.jar"
-          tag: "${{ github.ref }}"
+          tag: "beta/${{ github.job }}"
           commit: "${{ github.sha }}"
