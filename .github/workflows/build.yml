@@ -23,10 +23,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
       - name: Publish to GitHub
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          name: 'Build #{{ github.run_id }}'
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          name: "Beta #{{ github.run_id }}"
           prerelease: true
-          generate_release_notes: true
-          files: |
-            build/libs/chimp-launcher-*-all.jar
+          artifacts: "build/libs/*.jar"
+          tag: "beta-{{ github.run_id }}"
+          commit: "${{ github.sha }}"
