@@ -6,6 +6,7 @@ import dev.koding.launcher.data.launcher.LocalConfig
 import dev.koding.launcher.data.launcher.ProfileConfig
 import dev.koding.launcher.data.launcher.RemoteConfig
 import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
+import dev.koding.launcher.data.minecraft.manifest.toArguments
 import dev.koding.launcher.launch.*
 import dev.koding.launcher.loader.*
 import dev.koding.launcher.loader.resolvers.FabricResolver
@@ -68,8 +69,8 @@ suspend fun main(args: Array<String>) {
         vanillaHome ?: gameDirectory?.let { File(it) }?.takeIf { it.exists() },
         vanillaHome ?: launcherDirectory?.let { File(it) }?.takeIf { it.exists() },
         LauncherManifest.Arguments(
-            arguments?.map { LauncherManifest.Arguments.Argument(it) } ?: emptyList(),
-            jvm?.map { LauncherManifest.Arguments.Argument(it) } ?: emptyList()
+            arguments?.toArguments() ?: emptyList(),
+            jvm?.toArguments() ?: emptyList()
         )
     )
 
