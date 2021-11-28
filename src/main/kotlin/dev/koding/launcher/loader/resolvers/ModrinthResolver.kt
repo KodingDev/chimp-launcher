@@ -48,7 +48,7 @@ object ModrinthResolver : ResourceResolver {
             UrlResource(
                 resource.toString(),
                 file.url,
-                file.hashes.sha1,
+                integrity = UrlResource.Integrity(file.hashes.sha1, file.hashes.sha256),
                 path = target
             )
         )

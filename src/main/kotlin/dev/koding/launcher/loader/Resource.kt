@@ -4,6 +4,7 @@ import dev.koding.launcher.launch.ResourcesDirectory
 import dev.koding.launcher.util.download
 import dev.koding.launcher.util.json
 import dev.koding.launcher.util.system.sha1
+import dev.koding.launcher.util.system.sha256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -34,7 +35,7 @@ data class NamedResource(
 data class UrlResource(
     override val name: String,
     val url: String,
-    val sha1: String? = null,
+    val integrity: Integrity? = null,
     val path: String? = null,
     val volatile: Boolean = false
 ) : Resource() {
@@ -47,14 +48,24 @@ data class UrlResource(
                 ?: error("No resources directory specified")
 
             val loaded = LoadedResource(resource, target)
-            if (target.exists() && !resource.volatile && (resource.sha1 == null || target.sha1 == resource.sha1)) return loaded
+            if (target.exists() && !resource.volatile && resource.integrity?.verify(target) != false) return loaded
 
             logger.info { "Downloading ${resource.name} to ${target.absolutePath}" }
             parsed.download(target)
-
             logger.debug { "Downloaded ${resource.name} with SHA1 ${target.sha1}" }
-            return loaded
+
+            if (resource.integrity?.verify(target) != false) return loaded
+            error("Integrity check failed for ${resource.name}")
         }
+    }
+
+    @Serializable
+    data class Integrity(
+        val sha1: String? = null,
+        val sha256: String? = null
+    ) {
+        fun verify(file: File) =
+            sha1?.let { file.sha1 == it } ?: true && sha256?.let { file.sha256 == it } ?: true
     }
 }
 

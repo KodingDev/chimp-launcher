@@ -1,6 +1,5 @@
 package dev.koding.launcher.data.modrinth
 
-import dev.koding.launcher.data.minecraft.manifest.Asset
 import dev.koding.launcher.util.httpClient
 import io.ktor.client.request.*
 import kotlinx.serialization.SerialName
@@ -33,11 +32,10 @@ object ModrinthAPI {
         ) {
             @Serializable
             data class Hashes(
-                val sha1: String
+                val sha1: String,
+                val sha256: String? = null
             )
         }
-
-        val assets = files.map { Asset(it.url, sha1 = it.hashes.sha1, path = "modrinth/${modId}/${id}/${it.filename}") }
     }
 
     @Serializable

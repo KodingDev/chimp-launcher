@@ -11,6 +11,13 @@ val File.sha1: String
         return digest.fold("") { str, it -> str + "%02x".format(it) }
     }
 
+val File.sha256: String
+    get() {
+        val md = MessageDigest.getInstance("SHA-256")
+        val digest = md.digest(readBytes())
+        return digest.fold("") { str, it -> str + "%02x".format(it) }
+    }
+
 fun File.extractZip(destination: File) {
     if (!exists()) return
     val zipFile = ZipFile(this)

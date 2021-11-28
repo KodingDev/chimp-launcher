@@ -35,13 +35,21 @@ class MicrosoftAuthProvider : AuthProvider() {
         val authData = current as? MicrosoftAuthData
         val oauth = authData?.oAuth ?: fetchOauthToken()
 
-        if (oauth.expiry < System.currentTimeMillis()) {
-            logger.info { "Refreshing Microsoft OAuth token" }
-            SwingUtil.showError("Microsoft Login", "Your Microsoft login has expired. Please login again.")
-            return fetchOauthToken().fetchLoginData()
-        }
-
         if (authData != null && authData.token.expiry < System.currentTimeMillis()) {
+            if (oauth.expiry < System.currentTimeMillis()) {
+                logger.info { "Refreshing Microsoft OAuth token" }
+                return try {
+                    oauth.refresh().fetchLoginData()
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to refresh Microsoft OAuth token" }
+                    SwingUtil.showError(
+                        "Microsoft Authentication",
+                        "Failed to refresh Microsoft OAuth token. Please login again."
+                    )
+                    fetchOauthToken().fetchLoginData()
+                }
+            }
+
             logger.info { "Refreshing Minecraft login token" }
             return oauth.fetchLoginData()
         }
@@ -73,6 +81,12 @@ class MicrosoftAuthProvider : AuthProvider() {
 
         return MicrosoftAuthData(mcProfile, mcToken, this)
     }
+
+    private suspend fun OAuthToken.refresh() =
+        getAuthorizationToken(
+            "refresh_token" to refreshToken,
+            "grant_type" to "refresh_token",
+        )
 
     private suspend fun getAuthorizationCode(verifier: String): String? {
         val url = url {

@@ -1,0 +1,32 @@
+# GitHub CI config to build the project and publish the result as a release
+# marked as a draft.
+
+name: Java CI
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 16
+        uses: actions/setup-java@v2
+        with:
+          java-version: '16'
+          distribution: 'adopt'
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Publish to GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          name: 'Build #{{ github.run_id }}'
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            build/libs/chimp-launcher-*-all.jar
