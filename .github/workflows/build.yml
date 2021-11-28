@@ -29,5 +29,5 @@ jobs:
           name: "Beta #{{ github.run_id }}"
           prerelease: true
           artifacts: "build/libs/*.jar"
-          tag: "beta-{{ github.run_id }}"
+          tag: "${{ github.ref }}"
           commit: "${{ github.sha }}"
