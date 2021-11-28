@@ -46,3 +46,5 @@ tasks.withType<Jar> {
         "Main-Class" to "dev.koding.launcher.LauncherKt"
     )
 }
+
+tasks["build"].dependsOn("shadowJar")
