@@ -85,7 +85,9 @@ data class LauncherManifest(
         data class Argument(
             val value: String,
             val rules: List<Rule> = emptyList()
-        )
+        ) {
+            override fun toString() = value
+        }
     }
 
     @Serializable

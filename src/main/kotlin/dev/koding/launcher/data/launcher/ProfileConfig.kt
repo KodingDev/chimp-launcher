@@ -2,6 +2,7 @@
 
 package dev.koding.launcher.data.launcher
 
+import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.loader.Resource
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -21,8 +22,7 @@ data class ProfileConfig(
     @Serializable
     data class Launch(
         val profile: String,
-        val arguments: List<String> = emptyList(),
-        val jvm: List<String> = emptyList()
+        val arguments: LauncherManifest.Arguments = LauncherManifest.Arguments()
     )
 
     @Serializable
