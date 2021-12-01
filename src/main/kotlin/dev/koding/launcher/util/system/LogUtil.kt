@@ -16,10 +16,10 @@ import org.apache.logging.log4j.core.layout.PatternLayout
 import java.io.Serializable
 
 fun configureLogging() {
-    if (System.getProperty("debug.log") != null) {
-        Configurator.setAllLevels(LogManager.getRootLogger().name, Level.DEBUG)
-    }
+    if (System.getProperty("debug.log") != null) setLogLevel(Level.DEBUG)
 }
+
+fun setLogLevel(level: Level) = Configurator.setLevel(LogManager.getRootLogger().name, level)
 
 @Suppress("unused")
 @Plugin(name = "LogDisplay", category = "Core", elementType = "appender", printObject = true)

@@ -22,7 +22,8 @@ data class ProfileConfig(
     @Serializable
     data class Launch(
         val profile: String,
-        val arguments: LauncherManifest.Arguments = LauncherManifest.Arguments()
+        val arguments: LauncherManifest.Arguments = LauncherManifest.Arguments(),
+        val debug: Boolean = false
     )
 
     @Serializable

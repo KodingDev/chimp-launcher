@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class LocalConfig(
-    val config: String
+    val config: String,
+    val profile: String? = null
 )

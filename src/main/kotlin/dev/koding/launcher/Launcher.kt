@@ -15,6 +15,7 @@ import dev.koding.launcher.loader.resolvers.ModrinthResolver
 import dev.koding.launcher.util.*
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.system.configureLogging
+import dev.koding.launcher.util.system.setLogLevel
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.coroutines.Dispatchers
@@ -22,8 +23,6 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.logging.log4j.Level
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.core.config.Configurator
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -75,7 +74,7 @@ suspend fun main(args: Array<String>) {
     )
 
     if (gui == true) LauncherFrame.create()
-    if (debug == true) Configurator.setAllLevels(LogManager.getRootLogger().name, Level.DEBUG)
+    if (debug == true) setLogLevel(Level.DEBUG)
     if (vanilla != null) return launchVanilla(vanilla!!)
     if (version != null) return launchProfile(
         ProfileConfig(version!!, ProfileConfig.Launch("profile:${version}")),
@@ -90,16 +89,19 @@ private suspend fun launch() {
     LauncherFrame.create()
     LauncherFrame.update("Loading profiles")
 
+    val localConfig = readResource<LocalConfig>("/config.json")
     val configPath = System.getProperty("launcher.remoteConfig")?.let { File(it) }
-    val remoteConfig = configPath?.json()
-        ?: (readResource<LocalConfig>("/config.json")?.config?.fromUrl<RemoteConfig>() ?: return)
-    val choice = SwingUtil.askSelection("Select a profile", *remoteConfig.profiles.map { it.name }.toTypedArray())
-        ?: exitProcess(0)
+    val remote = configPath?.json<RemoteConfig>() ?: localConfig?.config?.fromUrl()
 
-    val profile = remoteConfig.profiles.firstOrNull { it.name == choice } ?: error("Invalid profile")
-    val profileConfig = resourceManager.load(profile.resource)?.json<ProfileConfig>()
-        ?: error("Failed to load config")
+    val profileConfig = localConfig?.profile?.fromUrl<ProfileConfig>() ?: localConfig?.let {
+        val choice = SwingUtil.askSelection(
+            "Select a profile",
+            *(remote?.profiles?.map { it.name }?.toTypedArray() ?: emptyArray())
+        ) ?: exitProcess(0)
 
+        val profile = remote?.profiles?.firstOrNull { it.name == choice } ?: error("Invalid profile")
+        resourceManager.load(profile.resource)?.json<ProfileConfig>() ?: error("Failed to load config")
+    } ?: error("Failed to load config")
     launchProfile(profileConfig)
 }
 
@@ -121,6 +123,7 @@ private suspend fun launchVanilla(name: String) {
 }
 
 private suspend fun launchProfile(profile: ProfileConfig, options: LaunchOptions = LaunchOptions()) {
+    if (profile.launch.debug) setLogLevel(Level.DEBUG)
     val loader = profile.loader(resourceManager) {
         config[ExtraArgs] = options.arguments
         config[LauncherDirectory] = options.launcherDirectory ?: home.resolve("launcher")
