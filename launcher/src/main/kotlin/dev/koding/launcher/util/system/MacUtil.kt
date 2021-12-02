@@ -30,7 +30,7 @@ object MacUtil {
         // It should be escaped properly
         val commandLine = "${JavaUtil.javaExecutable.absolutePath} " +
                 ManagementFactory.getRuntimeMXBean().inputArguments.joinToString(" ") { escaper.escape(it) } +
-                " -Dchimp.patchy=true -cp ${System.getProperty("java.class.path")} " +
+                " -Dchimp.patchy=true -cp ${escaper.escape(System.getProperty("java.class.path"))} " +
                 "${System.getProperty("chimp.mainClass", "dev.koding.launcher.LauncherKt")} " +
                 "${arguments.joinToString(" ")} ${args.joinToString(" ") { escaper.escape(it) }}"
 
