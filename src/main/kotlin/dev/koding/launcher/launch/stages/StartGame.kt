@@ -8,6 +8,7 @@ import dev.koding.launcher.launch.GameDirectory
 import dev.koding.launcher.launch.LaunchStage
 import dev.koding.launcher.launch.MinecraftLauncher
 import dev.koding.launcher.util.replaceParams
+import dev.koding.launcher.util.system.JavaUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
@@ -41,7 +42,7 @@ object StartGame : LaunchStage<Process> {
         ).distinct().joinToString(separator = File.pathSeparator)
 
         val commandLine = listOf(
-            getJavaPath(downloadJava.javaHome).absolutePath ?: error("No Java version"),
+            JavaUtil.getJavaPath(downloadJava.javaHome).absolutePath ?: error("No Java version"),
             *((launcher.manifest.arguments?.jvm?.toFilteredArray()?.takeUnless { it.isEmpty() }
                 ?: arrayOf("-Djava.library.path=\${natives_directory}", "-cp", "\${classpath}"))
                     + (launcher.config[ExtraArgs]?.jvm?.toFilteredArray() ?: emptyArray())),

@@ -22,6 +22,7 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
 
+    implementation("com.google.guava:guava:31.0.1-jre")
     implementation("com.formdev:flatlaf:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
     implementation("io.github.microutils:kotlin-logging:2.0.11")

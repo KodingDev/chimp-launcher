@@ -23,7 +23,8 @@ data class ProfileConfig(
     data class Launch(
         val profile: String,
         val arguments: LauncherManifest.Arguments = LauncherManifest.Arguments(),
-        val debug: Boolean = false
+        val debug: Boolean = false,
+        val macOSWorkaround: Boolean = false
     )
 
     @Serializable

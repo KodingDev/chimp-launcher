@@ -68,13 +68,6 @@ fun List<LauncherManifest.Arguments.Argument>.filterMatchesRule(default: Rule.Ac
 fun List<LauncherManifest.Arguments.Argument>.toFilteredArray() =
     filterMatchesRule(Rule.Action.DISALLOW).map { it.value }.toTypedArray()
 
-fun getJavaPath(root: File) = when (OS.type) {
-    OS.Type.WINDOWS -> root.resolve("bin/java.exe")
-    OS.Type.MAC -> root.resolve("jre.bundle/Contents/Home/bin/java")
-    OS.Type.LINUX -> root.resolve("bin/java")
-    else -> throw IllegalStateException("Unsupported OS: ${OS.type}")
-}
-
 operator fun LauncherManifest.Arguments.plus(other: LauncherManifest.Arguments) =
     LauncherManifest.Arguments(
         game = game.plus(other.game),

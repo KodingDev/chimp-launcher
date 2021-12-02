@@ -13,6 +13,7 @@ import dev.koding.launcher.loader.resolvers.FabricResolver
 import dev.koding.launcher.loader.resolvers.MinecraftVersionResolver
 import dev.koding.launcher.loader.resolvers.ModrinthResolver
 import dev.koding.launcher.util.*
+import dev.koding.launcher.util.system.MacUtil
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.system.configureLogging
 import dev.koding.launcher.util.system.setLogLevel
@@ -27,7 +28,7 @@ import java.io.File
 import kotlin.system.exitProcess
 
 // TODO: Clean up this class *somehow*
-private val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
+val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
 private val resourceManager = ResourceManager {
     +MinecraftVersionResolver
     +ModrinthResolver
@@ -44,6 +45,7 @@ suspend fun main(args: Array<String>) {
     configureLogging()
 
     val parser = ArgParser("chimp-launcher")
+    val profilePath by parser.option(ArgType.String, "profile-path", description = "A path to the profile to use")
     val profile by parser.option(ArgType.String, "profile", description = "The profile to use")
     val version by parser.option(ArgType.String, "version", description = "A Minecraft version to run")
     val debug by parser.option(ArgType.Boolean, "debug", description = "Enable debug mode")
@@ -80,12 +82,12 @@ suspend fun main(args: Array<String>) {
         ProfileConfig(version!!, ProfileConfig.Launch("profile:${version}")),
         launchOptions
     )
-    if (profile != null) return launchProfile(File(profile!!).json(), launchOptions)
+    if (profilePath != null) return launchProfile(File(profilePath!!).json(), launchOptions)
 
-    launch()
+    launch(profile)
 }
 
-private suspend fun launch() {
+private suspend fun launch(selectedProfile: String?) {
     LauncherFrame.create()
     LauncherFrame.update("Loading profiles")
 
@@ -93,16 +95,19 @@ private suspend fun launch() {
     val configPath = System.getProperty("launcher.remoteConfig")?.let { File(it) }
     val remote = configPath?.json<RemoteConfig>() ?: localConfig?.config?.fromUrl()
 
+    var name = selectedProfile
     val profileConfig = localConfig?.profile?.fromUrl<ProfileConfig>() ?: localConfig?.let {
-        val choice = SwingUtil.askSelection(
+        val choice = selectedProfile ?: SwingUtil.askSelection(
             "Select a profile",
             *(remote?.profiles?.map { it.name }?.toTypedArray() ?: emptyArray())
         ) ?: exitProcess(0)
 
         val profile = remote?.profiles?.firstOrNull { it.name == choice } ?: error("Invalid profile")
+        name = profile.name
         resourceManager.load(profile.resource)?.json<ProfileConfig>() ?: error("Failed to load config")
     } ?: error("Failed to load config")
-    launchProfile(profileConfig)
+
+    launchProfile(profileConfig, options = LaunchOptions(profile = name))
 }
 
 private suspend fun launchVanilla(name: String) {
@@ -124,6 +129,9 @@ private suspend fun launchVanilla(name: String) {
 
 private suspend fun launchProfile(profile: ProfileConfig, options: LaunchOptions = LaunchOptions()) {
     if (profile.launch.debug) setLogLevel(Level.DEBUG)
+    if (profile.launch.macOSWorkaround)
+        MacUtil.runWorkaround(*(options.profile?.let { arrayOf("--profile", it) } ?: emptyArray()))
+
     val loader = profile.loader(resourceManager) {
         config[ExtraArgs] = options.arguments
         config[LauncherDirectory] = options.launcherDirectory ?: home.resolve("launcher")
@@ -143,5 +151,6 @@ data class LaunchOptions(
     val gameDirectory: File? = null,
     val launcherDirectory: File? = null,
     val arguments: LauncherManifest.Arguments = LauncherManifest.Arguments(),
+    val profile: String? = null,
     val block: ProfileLoader.() -> Unit = {}
 )
