@@ -27,8 +27,11 @@ import org.apache.logging.log4j.Level
 import java.io.File
 import kotlin.system.exitProcess
 
+// TODO: Lib downloads at runtime (maybe?)
 // TODO: Clean up this class *somehow*
 val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
+val arguments = arrayListOf<String>()
+
 private val resourceManager = ResourceManager {
     +MinecraftVersionResolver
     +ModrinthResolver
@@ -42,6 +45,7 @@ private val resourceManager = ResourceManager {
 }
 
 suspend fun main(args: Array<String>) {
+    arguments.addAll(args)
     configureLogging()
 
     val parser = ArgParser("chimp-launcher")

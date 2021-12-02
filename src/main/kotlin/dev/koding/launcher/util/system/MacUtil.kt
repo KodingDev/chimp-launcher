@@ -3,6 +3,7 @@
 package dev.koding.launcher.util.system
 
 import com.google.common.escape.Escapers
+import dev.koding.launcher.arguments
 import dev.koding.launcher.home
 import mu.KotlinLogging
 import java.lang.management.ManagementFactory
@@ -27,11 +28,10 @@ object MacUtil {
 
         // The full command which was run to start the launcher
         // It should be escaped properly
-        val commandLine = JavaUtil.javaExecutable.absolutePath + " " +
+        val commandLine = "${JavaUtil.javaExecutable.absolutePath} " +
                 ManagementFactory.getRuntimeMXBean().inputArguments.joinToString(" ") { escaper.escape(it) } +
-                " -Dchimp.patchy=true -cp " + System.getProperty("java.class.path") +
-                " " + System.getProperty("sun.java.command") +
-                " " + args.joinToString(" ") { escaper.escape(it) }
+                " -Dchimp.patchy=true -cp ${System.getProperty("java.class.path")} dev.koding.launcher.LauncherKt " +
+                "${arguments.joinToString(" ")} ${args.joinToString(" ") { escaper.escape(it) }}"
 
         logger.debug { "Running workaround for macOS using command line: $commandLine" }
         val workaroundFile = home.resolve("run-workaround.sh")
