@@ -14,7 +14,12 @@ dependencies {
 }
 
 tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(zipTree(project(":common").tasks.withType<Jar>().first().archiveFile))
+
     manifest.attributes(
         "Main-Class" to "dev.koding.launcher.LauncherKt"
     )
 }
+
+tasks.create<dev.koding.launcher.gradle.task.CreateBootstrapConfig>("createBootstrapConfig")

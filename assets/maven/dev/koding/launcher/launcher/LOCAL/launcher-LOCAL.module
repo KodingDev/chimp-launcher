@@ -1,0 +1,242 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "dev.koding.launcher",
+    "module": "launcher",
+    "version": "LOCAL",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.3.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.6.0"
+          }
+        },
+        {
+          "group": "dev.koding.launcher",
+          "module": "common",
+          "version": {
+            "requires": "LOCAL"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "31.0.1-jre"
+          }
+        },
+        {
+          "group": "com.formdev",
+          "module": "flatlaf",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-cli",
+          "version": {
+            "requires": "0.3.3"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.14.1"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-slf4j-impl",
+          "version": {
+            "requires": "2.14.1"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-apache",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-serialization",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-logging",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-server-netty",
+          "version": {
+            "requires": "1.6.4"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "launcher-LOCAL.jar",
+          "url": "launcher-LOCAL.jar",
+          "size": 784345,
+          "sha512": "40a1dd7df38d004aed961a00e25b236120b0f145809e1c52dc4379eb2bd674cf332be0ced866f44cd6e3c24da80c1deacfbf322c24cba3f34d79a5fcf95a3a0a",
+          "sha256": "7f6dabb172220e05c616b679313b613ec7957ea209026e4cca5c2dcd38a1a30f",
+          "sha1": "c64d4ed35100ca2ab656ea41e3fcf77abe70a618",
+          "md5": "96a289fbacbcdcbe713d5bcd63f1fe42"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.6.0"
+          }
+        },
+        {
+          "group": "dev.koding.launcher",
+          "module": "common",
+          "version": {
+            "requires": "LOCAL"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "31.0.1-jre"
+          }
+        },
+        {
+          "group": "com.formdev",
+          "module": "flatlaf",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-cli",
+          "version": {
+            "requires": "0.3.3"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.14.1"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-slf4j-impl",
+          "version": {
+            "requires": "2.14.1"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-apache",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-serialization",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-logging",
+          "version": {
+            "requires": "1.6.4"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-server-netty",
+          "version": {
+            "requires": "1.6.4"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "launcher-LOCAL.jar",
+          "url": "launcher-LOCAL.jar",
+          "size": 784345,
+          "sha512": "40a1dd7df38d004aed961a00e25b236120b0f145809e1c52dc4379eb2bd674cf332be0ced866f44cd6e3c24da80c1deacfbf322c24cba3f34d79a5fcf95a3a0a",
+          "sha256": "7f6dabb172220e05c616b679313b613ec7957ea209026e4cca5c2dcd38a1a30f",
+          "sha1": "c64d4ed35100ca2ab656ea41e3fcf77abe70a618",
+          "md5": "96a289fbacbcdcbe713d5bcd63f1fe42"
+        }
+      ]
+    },
+    {
+      "name": "shadowRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "shadowed",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "launcher-LOCAL-all.jar",
+          "url": "launcher-LOCAL-all.jar",
+          "size": 23825089,
+          "sha512": "c807adb63caf4de247abc6fe0bb1b3d4405052711ba6a072473deffe77db291efcfb2fd5b21e77ba5a0c5b7913bc869df6e6d2994a6489098ed4f0e0057b3e18",
+          "sha256": "c8bbc4b2d93f4fd53a3d2a2681bcc331f0ad63a64c99fab6afb324697da9bb51",
+          "sha1": "70b42a5496c3fea18ac3f830212aa53784a29ece",
+          "md5": "73eec4a0a4dbf76eb00d7d922ba97c70"
+        }
+      ]
+    }
+  ]
+}

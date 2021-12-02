@@ -4,7 +4,7 @@ package dev.koding.launcher.util.system
 
 import com.google.common.escape.Escapers
 import dev.koding.launcher.arguments
-import dev.koding.launcher.home
+import dev.koding.launcher.launcherHome
 import mu.KotlinLogging
 import java.lang.management.ManagementFactory
 import kotlin.system.exitProcess
@@ -34,7 +34,7 @@ object MacUtil {
                 "${arguments.joinToString(" ")} ${args.joinToString(" ") { escaper.escape(it) }}"
 
         logger.debug { "Running workaround for macOS using command line: $commandLine" }
-        val workaroundFile = home.resolve("run-workaround.sh")
+        val workaroundFile = launcherHome.resolve("run-workaround.sh")
         workaroundFile.writeText(
             """
             #!/bin/bash

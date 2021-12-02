@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <groupId>dev.koding.launcher</groupId>
+    <artifactId>chimp-launcher</artifactId>
+    <versioning>
+        <latest>LOCAL</latest>
+        <release>LOCAL</release>
+        <versions>
+            <version>LOCAL</version>
+        </versions>
+        <lastUpdated>20211202125149</lastUpdated>
+    </versioning>
+</metadata>

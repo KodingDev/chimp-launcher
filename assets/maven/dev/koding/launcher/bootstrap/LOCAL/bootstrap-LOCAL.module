@@ -1,0 +1,130 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "dev.koding.launcher",
+    "module": "bootstrap",
+    "version": "LOCAL",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.3.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.6.0"
+          }
+        },
+        {
+          "group": "dev.koding.launcher",
+          "module": "common",
+          "version": {
+            "requires": "LOCAL"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-simple",
+          "version": {
+            "requires": "2.0.0-alpha5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "bootstrap-LOCAL.jar",
+          "url": "bootstrap-LOCAL.jar",
+          "size": 27302,
+          "sha512": "ed8a1c724c8741d7fab37fa0fe4b6b670e877595c578ca115ea77e3d243d8c3c106e57d3c4d8e2c4b5142f931038d5416bec07b2010fb9a1b61a4186693e9d07",
+          "sha256": "732409bff38da98dc8c342c021534ef724fcac8eb747abc96448b9e1ae8ba580",
+          "sha1": "094de2dfda77e6ebc9d8d2f6a6e4bdfbbce0157e",
+          "md5": "81974a47e9d10b39e7c8b53642f04696"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.6.0"
+          }
+        },
+        {
+          "group": "dev.koding.launcher",
+          "module": "common",
+          "version": {
+            "requires": "LOCAL"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-simple",
+          "version": {
+            "requires": "2.0.0-alpha5"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "bootstrap-LOCAL.jar",
+          "url": "bootstrap-LOCAL.jar",
+          "size": 27302,
+          "sha512": "ed8a1c724c8741d7fab37fa0fe4b6b670e877595c578ca115ea77e3d243d8c3c106e57d3c4d8e2c4b5142f931038d5416bec07b2010fb9a1b61a4186693e9d07",
+          "sha256": "732409bff38da98dc8c342c021534ef724fcac8eb747abc96448b9e1ae8ba580",
+          "sha1": "094de2dfda77e6ebc9d8d2f6a6e4bdfbbce0157e",
+          "md5": "81974a47e9d10b39e7c8b53642f04696"
+        }
+      ]
+    },
+    {
+      "name": "shadowRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "shadowed",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "bootstrap-LOCAL-all.jar",
+          "url": "bootstrap-LOCAL-all.jar",
+          "size": 3955638,
+          "sha512": "f1cd6f86fd7b4d7b3972a52ad7d3df4a8868e8c127ef41219ee07580d9a4a62991e07ba98cf5f98b9c0446b177c84c87d85fff2851ec88568707dbddfe2d7371",
+          "sha256": "f52bc38741fa76a141a9d37fecf45c634f23151690b7acaee8527306ce600ae7",
+          "sha1": "225a103bae677f5a40a9e7d3ea863b52da12f599",
+          "md5": "9714197f424b96d8f0a36e999d770a0d"
+        }
+      ]
+    }
+  ]
+}

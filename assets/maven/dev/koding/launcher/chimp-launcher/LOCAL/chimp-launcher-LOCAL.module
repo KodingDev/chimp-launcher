@@ -1,0 +1,102 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "dev.koding.launcher",
+    "module": "chimp-launcher",
+    "version": "LOCAL",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.3.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.6.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "chimp-launcher-LOCAL.jar",
+          "url": "chimp-launcher-LOCAL.jar",
+          "size": 261,
+          "sha512": "7a2a26f48ae3390971bb22495d2c7229233497334d531f72c6f8a88fd671f6afc91c175428096d2663ce9238ccc508640b4de4e322b0254312e2e260324d48f2",
+          "sha256": "e219e4bd732aa96895369c0b1a68c12b98dec531493e83b3badfa443ea278950",
+          "sha1": "5301007af96cdc4be6631f770b93d9ff7a0cf95d",
+          "md5": "2ec5146e7b914938f6e400a8879bf566"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 16,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "1.6.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "chimp-launcher-LOCAL.jar",
+          "url": "chimp-launcher-LOCAL.jar",
+          "size": 261,
+          "sha512": "7a2a26f48ae3390971bb22495d2c7229233497334d531f72c6f8a88fd671f6afc91c175428096d2663ce9238ccc508640b4de4e322b0254312e2e260324d48f2",
+          "sha256": "e219e4bd732aa96895369c0b1a68c12b98dec531493e83b3badfa443ea278950",
+          "sha1": "5301007af96cdc4be6631f770b93d9ff7a0cf95d",
+          "md5": "2ec5146e7b914938f6e400a8879bf566"
+        }
+      ]
+    },
+    {
+      "name": "shadowRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "shadowed",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "chimp-launcher-LOCAL-all.jar",
+          "url": "chimp-launcher-LOCAL-all.jar",
+          "size": 1723228,
+          "sha512": "92629a6c94d872ceca8a216484b05bbb3360b7f36755bb29aec27b608531c19dd1f00c57f7306e373ca543447920628228b1347dfb1d9b45cc110c60cc36acc9",
+          "sha256": "64780e3f8aac05719ababa534a1815da389d352acc00bd36b5b280cc69f6d038",
+          "sha1": "7439314c4926e2ad80c14a93a6af74a79ad90ced",
+          "md5": "9c6be89a649c70b70ec48d826c8ae4a3"
+        }
+      ]
+    }
+  ]
+}

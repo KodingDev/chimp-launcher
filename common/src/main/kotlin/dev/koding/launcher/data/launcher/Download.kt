@@ -22,6 +22,14 @@ data class Download(
     val integrity: Integrity = Integrity(),
     val volatile: Boolean = false
 ) {
+    companion object {
+        fun fromMaven(dependency: String, repository: String = "https://repo1.maven.org/maven2"): Download {
+            val (group, artifact, version) = dependency.split(":")
+            val path = "${group.replace(".", "/")}/$artifact/$version/$artifact-$version.jar"
+            return Download("${repository.removeSuffix("/")}/$path", path = path)
+        }
+    }
+
     @Serializable
     data class Integrity(
         val size: Long? = null, val sha1: String? = null, val sha256: String? = null

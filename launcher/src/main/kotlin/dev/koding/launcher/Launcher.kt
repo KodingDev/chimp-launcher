@@ -27,9 +27,7 @@ import org.apache.logging.log4j.Level
 import java.io.File
 import kotlin.system.exitProcess
 
-// TODO: Lib downloads at runtime (maybe?)
 // TODO: Clean up this class *somehow*
-val home = File(System.getProperty("user.home")).resolve(".chimp-launcher")
 val arguments = arrayListOf<String>()
 
 private val resourceManager = ResourceManager {
@@ -41,7 +39,7 @@ private val resourceManager = ResourceManager {
     +UrlResource
     +FileResource
 
-    config[ResourcesDirectory] = home.resolve("resources")
+    config[ResourcesDirectory] = launcherHome.resolve("resources")
 }
 
 suspend fun main(args: Array<String>) {
@@ -138,8 +136,8 @@ private suspend fun launchProfile(profile: ProfileConfig, options: LaunchOptions
 
     val loader = profile.loader(resourceManager) {
         config[ExtraArgs] = options.arguments
-        config[LauncherDirectory] = options.launcherDirectory ?: home.resolve("launcher")
-        config[GameDirectory] = options.gameDirectory ?: home.resolve("profiles/${profile.name}")
+        config[LauncherDirectory] = options.launcherDirectory ?: launcherHome.resolve("launcher")
+        config[GameDirectory] = options.gameDirectory ?: launcherHome.resolve("profiles/${profile.name}")
 
         progressHandler = { name, progress -> LauncherFrame.update(name, progress?.times(100)?.toInt()) }
     }.apply(options.block)
