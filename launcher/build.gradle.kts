@@ -6,6 +6,8 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
     api("org.apache.logging.log4j:log4j-core:2.14.1")
     api("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
+    api("org.apache.commons:commons-text:1.9")
+
 
     api("io.ktor:ktor-client-apache:1.6.4")
     api("io.ktor:ktor-client-serialization:1.6.4")

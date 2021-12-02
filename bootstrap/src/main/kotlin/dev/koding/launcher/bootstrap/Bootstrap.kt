@@ -4,7 +4,6 @@ import dev.koding.launcher.data.launcher.download
 import dev.koding.launcher.launcherHome
 import java.io.File
 import java.net.URLClassLoader
-import javax.swing.UIManager
 
 
 object Bootstrap {
@@ -13,8 +12,6 @@ object Bootstrap {
         val dependencies = manifest.dependencies.map { it.toDownload() }.map { it.download(libDir).toURI().toURL() }
 
         val classLoader = URLClassLoader(dependencies.toTypedArray(), null)
-        UIManager.put("ClassLoader", classLoader)
-
         val launcher = classLoader.loadClass(manifest.main)
         System.setProperty("chimp.mainClass", "dev.koding.launcher.bootstrap.BootstrapKt")
         launcher.getMethod("main", Array<String>::class.java).invoke(null, args)

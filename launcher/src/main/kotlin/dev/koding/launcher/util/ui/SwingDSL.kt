@@ -14,11 +14,15 @@ private var themeApplied = false
 
 fun applySwingTheme() {
     if (themeApplied) return
+
     System.setProperty("apple.laf.useScreenMenuBar", "true")
     System.setProperty("apple.awt.application.name", "Chimp Launcher")
     System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua")
+
     runCatching { Taskbar.getTaskbar().iconImage = icon }
+    UIManager.put("ClassLoader", LauncherFrame::class.java.classLoader)
     FlatDarkLaf.setup()
+
     themeApplied = true
 }
 
