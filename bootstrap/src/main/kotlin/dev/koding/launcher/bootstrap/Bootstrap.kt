@@ -16,6 +16,7 @@ object Bootstrap {
         UIManager.put("ClassLoader", classLoader)
 
         val launcher = classLoader.loadClass(manifest.main)
+        System.setProperty("chimp.mainClass", "dev.koding.launcher.bootstrap.BootstrapKt")
         launcher.getMethod("main", Array<String>::class.java).invoke(null, args)
     }
 }

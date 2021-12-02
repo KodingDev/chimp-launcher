@@ -30,7 +30,8 @@ object MacUtil {
         // It should be escaped properly
         val commandLine = "${JavaUtil.javaExecutable.absolutePath} " +
                 ManagementFactory.getRuntimeMXBean().inputArguments.joinToString(" ") { escaper.escape(it) } +
-                " -Dchimp.patchy=true -cp ${System.getProperty("java.class.path")} dev.koding.launcher.LauncherKt " +
+                " -Dchimp.patchy=true -cp ${System.getProperty("java.class.path")} " +
+                "${System.getProperty("chimp.mainClass", "dev.koding.launcher.LauncherKt")} " +
                 "${arguments.joinToString(" ")} ${args.joinToString(" ") { escaper.escape(it) }}"
 
         logger.debug { "Running workaround for macOS using command line: $commandLine" }
