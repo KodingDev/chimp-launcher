@@ -20,7 +20,7 @@ data class Download(
     val url: String,
     val path: String = URL(url).let { "${it.host}/${it.path}" },
     val integrity: Integrity = Integrity(),
-    val volatile: Boolean = false
+    val settings: Settings = Settings(),
 ) {
     companion object {
         fun fromMaven(dependency: String, repository: String = "https://repo1.maven.org/maven2"): Download {
@@ -42,27 +42,37 @@ data class Download(
 
         fun isValid(file: File) = runCatching { verify(file) }.isSuccess
     }
+
+    @Serializable
+    data class Settings(
+        val volatile: Boolean = false,
+        val log: Boolean = true
+    )
 }
 
-fun Download.download(root: File, strict: Boolean = false, progressHandler: ProgressHandler = { _, _ -> }): File {
+fun Download.download(
+    root: File,
+    strict: Boolean = false,
+    progressHandler: ProgressHandler = { _, _ -> }
+): File {
     val url = URL(this.url)
     val destination = if (strict) root else root.resolve(path)
 
     // Check if the file already exists
-    if (destination.exists() && integrity.isValid(destination) && !volatile) {
-        logger.debug { "File already exists, skipping: ${destination.absolutePath}" }
+    if (destination.exists() && integrity.isValid(destination) && !settings.volatile) {
+        if (settings.log) logger.debug { "File already exists, skipping: ${destination.absolutePath}" }
         progressHandler("File already exists, skipping: ${destination.absolutePath}", 1.0)
         return destination
     }
 
     // Download the file
-    logger.info { "Downloading file: $url" }
+    if (settings.log) logger.info { "Downloading file: $url" }
     progressHandler("Downloading file: $url", 0.0)
     url.download(destination)
 
     // Verify integrity
     integrity.verify(destination)
-    logger.debug { "Downloaded file: ${destination.absolutePath}" }
+    if (settings.log) logger.debug { "Downloaded file: ${destination.absolutePath}" }
     progressHandler("Downloaded file: ${destination.absolutePath}", 1.0)
     return destination
 }

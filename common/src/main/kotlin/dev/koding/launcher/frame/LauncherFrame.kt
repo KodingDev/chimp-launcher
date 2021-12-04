@@ -32,7 +32,7 @@ object LauncherFrame {
                     +status
                     +verticalSpace(10)
                     +progress
-                } + (if (showLog) BorderLayout.CENTER else BorderLayout.SOUTH)
+                } + (if (showLog) BorderLayout.SOUTH else BorderLayout.CENTER)
             }
 
             addWindowListener(object : WindowAdapter() {
