@@ -7,6 +7,7 @@ import dev.koding.launcher.data.launcher.ProfileConfig
 import dev.koding.launcher.data.launcher.RemoteConfig
 import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.data.minecraft.manifest.toArguments
+import dev.koding.launcher.frame.LauncherFrame
 import dev.koding.launcher.launch.*
 import dev.koding.launcher.loader.*
 import dev.koding.launcher.loader.resolvers.FabricResolver

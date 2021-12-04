@@ -1,7 +1,7 @@
 package dev.koding.launcher.util.ui
 
 import com.formdev.flatlaf.FlatDarkLaf
-import dev.koding.launcher.LauncherFrame
+import dev.koding.launcher.frame.LauncherFrame
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.LayoutManager

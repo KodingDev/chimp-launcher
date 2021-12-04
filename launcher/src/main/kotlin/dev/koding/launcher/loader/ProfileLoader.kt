@@ -1,10 +1,10 @@
 package dev.koding.launcher.loader
 
-import dev.koding.launcher.LauncherFrame
 import dev.koding.launcher.data.launcher.ProfileConfig
 import dev.koding.launcher.data.launcher.ProgressHandler
 import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.data.minecraft.manifest.plus
+import dev.koding.launcher.frame.LauncherFrame
 import dev.koding.launcher.launch.Config
 import dev.koding.launcher.launch.GameDirectory
 import dev.koding.launcher.launch.MinecraftLauncher

@@ -19,4 +19,10 @@ val json = Json {
 inline fun <reified T> T.toJson(): String = json.encodeToString(this)
 inline fun <reified T> String.json(): T = json.decodeFromString(this)
 inline fun <reified T> File.json(): T = readText().json()
-inline fun <reified T> String.fromUrl(): T = json.decodeFromStream(URL(this@fromUrl).openStream())
+
+inline fun <reified T> String.fromUrl(): T = json.decodeFromStream(URL(this@fromUrl).openConnection().apply {
+    setRequestProperty(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36"
+    )
+}.getInputStream())

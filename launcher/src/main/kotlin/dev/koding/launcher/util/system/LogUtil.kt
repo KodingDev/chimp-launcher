@@ -1,6 +1,6 @@
 package dev.koding.launcher.util.system
 
-import dev.koding.launcher.LauncherFrame
+import dev.koding.launcher.frame.LauncherFrame
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.Filter

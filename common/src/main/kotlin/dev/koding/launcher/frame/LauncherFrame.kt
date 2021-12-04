@@ -1,4 +1,4 @@
-package dev.koding.launcher
+package dev.koding.launcher.frame
 
 import dev.koding.launcher.util.ui.applySwingTheme
 import dev.koding.launcher.util.ui.content
@@ -17,22 +17,22 @@ object LauncherFrame {
     private val progress by lazy { JProgressBar() }
     private val status by lazy { JLabel("Starting game...").apply { alignmentX = Component.CENTER_ALIGNMENT } }
 
-    fun create() {
+    fun create(showLog: Boolean = true, size: Pair<Int, Int> = 600 to 400) {
         applySwingTheme()
         if (frame != null && frame?.isVisible == true) return
 
-        frame = frame(size = 600 to 400) {
+        frame = frame(size = size) {
             content {
                 layout = BorderLayout()
 
-                JScrollPane(log) + BorderLayout.CENTER
+                if (showLog) JScrollPane(log) + BorderLayout.CENTER
                 panel {
                     padding = 10
 
                     +status
                     +verticalSpace(10)
                     +progress
-                } + BorderLayout.SOUTH
+                } + (if (showLog) BorderLayout.CENTER else BorderLayout.SOUTH)
             }
 
             addWindowListener(object : WindowAdapter() {
@@ -49,8 +49,8 @@ object LauncherFrame {
 
     fun update(status: String? = null, progress: Int? = null) {
         frame ?: return
-        progress?.let { this.progress.value = it }
-        status?.let { this.status.text = it }
+        progress?.let { LauncherFrame.progress.value = it }
+        status?.let { LauncherFrame.status.text = it }
     }
 
     fun log(message: String) {

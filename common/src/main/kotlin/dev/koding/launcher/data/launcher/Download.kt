@@ -44,23 +44,26 @@ data class Download(
     }
 }
 
-fun Download.download(root: File, strict: Boolean = false): File {
+fun Download.download(root: File, strict: Boolean = false, progressHandler: ProgressHandler = { _, _ -> }): File {
     val url = URL(this.url)
     val destination = if (strict) root else root.resolve(path)
 
     // Check if the file already exists
     if (destination.exists() && integrity.isValid(destination) && !volatile) {
         logger.debug { "File already exists, skipping: ${destination.absolutePath}" }
+        progressHandler("File already exists, skipping: ${destination.absolutePath}", 1.0)
         return destination
     }
 
     // Download the file
     logger.info { "Downloading file: $url" }
+    progressHandler("Downloading file: $url", 0.0)
     url.download(destination)
 
     // Verify integrity
     integrity.verify(destination)
     logger.debug { "Downloaded file: ${destination.absolutePath}" }
+    progressHandler("Downloaded file: ${destination.absolutePath}", 1.0)
     return destination
 }
 
