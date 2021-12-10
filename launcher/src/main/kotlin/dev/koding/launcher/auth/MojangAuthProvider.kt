@@ -46,7 +46,7 @@ class MojangAuthProvider : AuthProvider() {
                 content {
                     padding = 10
 
-                    +JLabel("Username").alignX(Component.LEFT_ALIGNMENT)
+                    +JLabel("Email").alignX(Component.LEFT_ALIGNMENT)
                     +verticalSpace(5)
                     +username.alignX(Component.LEFT_ALIGNMENT)
                     +verticalSpace(10)
