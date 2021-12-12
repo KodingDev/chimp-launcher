@@ -5,16 +5,13 @@ package dev.koding.launcher.data.minecraft.manifest
 import dev.koding.launcher.data.launcher.Download
 import dev.koding.launcher.util.system.OS
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import java.net.URL
+import java.net.URI
 
 fun Asset.asDownload(): Download? {
     return Download(
         url = url ?: return null,
-        path = path ?: URL(this.url).path.split("/").last(),
-        integrity = Download.Integrity(
-            size = size,
-            sha1 = sha1
-        )
+        path = path ?: url.path.split("/").last(),
+        integrity = Download.Integrity(size = size, sha1 = sha1)
     )
 }
 
@@ -54,7 +51,7 @@ val LauncherManifest.Library.asset: Asset
     get() {
         downloads?.artifact?.let { return it }
         val path = name.split(":").let { "${it[0].replace(".", "/")}/${it[1]}/${it[2]}/${it[1]}-${it[2]}.jar" }
-        return Asset(url = if (url != null) "$url$path" else null, path = path)
+        return Asset(url = if (url != null) URI("$url$path") else null, path = path)
     }
 
 val LauncherManifest.Library.assets

@@ -1,7 +1,8 @@
 package dev.koding.launcher.data.launcher
 
-import dev.koding.launcher.loader.Resource
+import dev.koding.launcher.util.URISerializer
 import kotlinx.serialization.Serializable
+import java.net.URI
 
 @Serializable
 data class RemoteConfig(
@@ -11,6 +12,7 @@ data class RemoteConfig(
 @Serializable
 data class RemoteProfile(
     val name: String,
-    val resource: Resource,
+    @Serializable(URISerializer::class)
+    val resource: URI,
     val description: String? = null
 )

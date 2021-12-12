@@ -1,59 +1,44 @@
 package dev.koding.launcher.loader
 
-import dev.koding.launcher.data.launcher.Download
-import dev.koding.launcher.data.launcher.download
-import dev.koding.launcher.launch.ResourcesDirectory
 import dev.koding.launcher.util.json
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import dev.koding.launcher.util.ktor
+import io.ktor.http.*
 import java.io.File
+import java.net.URI
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
 
-@Serializable
-sealed class Resource {
-    abstract val name: String
-    val location get() = ResourceLocation(name.substringBefore(":"), name.substringAfter(":").split("/"))
-}
-
-@Serializable
-@SerialName("named")
-data class NamedResource(
-    override val name: String,
-) : Resource() {
-    companion object : ResourceLoader<NamedResource> {
-        override suspend fun load(manager: ResourceManager, resource: NamedResource): LoadedResource<*>? =
-            manager.resolvers.firstNotNullOfOrNull { it.resolve(manager, resource.location) }
-    }
-}
-
-@Serializable
-@SerialName("url")
-data class UrlResource(
-    override val name: String,
-    val download: Download
-) : Resource() {
-    companion object : ResourceLoader<UrlResource> {
-        override suspend fun load(manager: ResourceManager, resource: UrlResource): LoadedResource<*> {
-            val target = manager.config[ResourcesDirectory] ?: error("No resources directory specified")
-            return LoadedResource(resource, resource.download.download(target))
-        }
-    }
-}
-
-@Serializable
-@SerialName("file")
-data class FileResource(
-    override val name: String,
-    val path: String
-) : Resource() {
-    companion object : ResourceLoader<FileResource> {
-        override suspend fun load(manager: ResourceManager, resource: FileResource) =
-            File(resource.path).takeIf { it.exists() }?.let { LoadedResource(resource, it) }
-    }
-}
-
-data class LoadedResource<T : Resource>(
-    val resource: T,
+data class LoadedResource(
+    val resource: URI,
     val file: File
 ) {
     inline fun <reified T> json() = file.json<T>()
 }
+
+data class ResourceDescriptor(var resource: URI) {
+    var path by ParamAccessor(this::resource, "path") { it ?: "${resource.host}/${resource.path}" }
+
+    var sha1 by ParamAccessor(this::resource, "sha1") { it }
+    var sha256 by ParamAccessor(this::resource, "sha256") { it }
+
+    var volatile by ParamAccessor(this::resource, "volatile") { it?.toBoolean() ?: false }
+    var log by ParamAccessor(this::resource, "log") { it?.toBoolean() ?: true }
+
+    private class ParamAccessor<T>(var property: KMutableProperty<URI>, name: String, val modify: (String?) -> T) {
+        private val name = "chimp.$name"
+
+        operator fun getValue(thisRef: Any?, property: KProperty<*>): T =
+            modify(this.property.call().ktor.parameters[name])
+
+        operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
+            this.property.setter.call(URLBuilder(this.property.call().ktor).apply {
+                if (value == null) parameters.remove(name)
+                else parameters[name] = value.toString()
+            }.build().toURI())
+        }
+    }
+}
+
+fun URI.describe(block: ResourceDescriptor.() -> Unit) = ResourceDescriptor(this).apply(block).resource
+
+fun buildUrl(block: URLBuilder.() -> Unit): URI = URLBuilder().apply(block).build().toURI()

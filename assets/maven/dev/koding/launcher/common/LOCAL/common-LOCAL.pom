@@ -36,5 +36,11 @@
             <version>1.6.0-RC</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>1.6.4</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

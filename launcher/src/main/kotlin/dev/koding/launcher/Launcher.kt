@@ -9,7 +9,9 @@ import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.data.minecraft.manifest.toArguments
 import dev.koding.launcher.frame.LauncherFrame
 import dev.koding.launcher.launch.*
-import dev.koding.launcher.loader.*
+import dev.koding.launcher.loader.ProfileLoader
+import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.loader.loader
 import dev.koding.launcher.loader.resolvers.FabricResolver
 import dev.koding.launcher.loader.resolvers.MinecraftVersionResolver
 import dev.koding.launcher.loader.resolvers.ModrinthResolver
@@ -26,24 +28,23 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.logging.log4j.Level
 import java.io.File
+import java.net.URI
 import kotlin.system.exitProcess
 
 // TODO: Clean up this class *somehow*
 val arguments = arrayListOf<String>()
 
 private val resourceManager = ResourceManager {
+    +FabricResolver
     +MinecraftVersionResolver
     +ModrinthResolver
-    +FabricResolver
-
-    +NamedResource
-    +UrlResource
-    +FileResource
 
     config[ResourcesDirectory] = launcherHome.resolve("resources")
 }
 
 suspend fun main(args: Array<String>) {
+    // TODO: Check if Java is 64-bit
+
     arguments.addAll(args)
     configureLogging()
 
@@ -51,7 +52,8 @@ suspend fun main(args: Array<String>) {
     val profilePath by parser.option(ArgType.String, "profile-path", description = "A path to the profile to use")
     val profile by parser.option(ArgType.String, "profile", description = "The profile to use")
     val version by parser.option(ArgType.String, "version", description = "A Minecraft version to run")
-    val debug by parser.option(ArgType.Boolean, "debug", description = "Enable debug mode")
+    val debug by parser.option(ArgType.Boolean, "debug", description = "Enable debug log mode")
+    val trace by parser.option(ArgType.Boolean, "trace", description = "Enable trace log mode")
     val gui by parser.option(ArgType.Boolean, "gui", description = "Enable the GUI")
     val gameDirectory by parser.option(
         ArgType.String,
@@ -80,9 +82,10 @@ suspend fun main(args: Array<String>) {
 
     if (gui == true) LauncherFrame.create()
     if (debug == true) setLogLevel(Level.DEBUG)
+    if (trace == true) setLogLevel(Level.TRACE)
     if (vanilla != null) return launchVanilla(vanilla!!)
     if (version != null) return launchProfile(
-        ProfileConfig(version!!, ProfileConfig.Launch("profile:${version}")),
+        ProfileConfig(version!!, ProfileConfig.Launch(URI("content://net.minecraft/$version"))),
         launchOptions
     )
     if (profilePath != null) return launchProfile(File(profilePath!!).json(), launchOptions)
@@ -121,12 +124,8 @@ private suspend fun launchVanilla(name: String) {
         config[StartJarPath] = vanillaHome.resolve("versions/${name}/${name}.jar")
     }
 
-    val profileConfig = ProfileConfig(
-        name, ProfileConfig.Launch("profile:vanilla"), resources = listOf(
-            FileResource("profile:vanilla", vanillaHome.resolve("versions/${name}/${name}.json").absolutePath)
-        )
-    )
-
+    val profileConfig =
+        ProfileConfig(name, ProfileConfig.Launch(vanillaHome.resolve("versions/${name}/${name}.json").toURI()))
     launchProfile(profileConfig, launchOptions)
 }
 

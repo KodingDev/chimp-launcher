@@ -1,8 +1,7 @@
 package dev.koding.launcher.gradle.task
 
 import dev.koding.launcher.bootstrap.Manifest
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import dev.koding.launcher.util.toJson
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
@@ -29,17 +28,13 @@ abstract class CreateBootstrapConfig : DefaultTask() {
             }
 
         val manifest = Manifest("dev.koding.launcher.LauncherKt", dependencies)
-        outputFile.get().asFile.writeText(Json {
-            prettyPrint = true
-            encodeDefaults = false
-        }.encodeToString(manifest))
+        outputFile.get().asFile.writeText(manifest.toJson())
     }
 
     private fun getRepository(group: String, name: String, version: String) =
         project.repositories.filterIsInstance<MavenArtifactRepository>()
             .find {
                 val url = "${it.url}${group.replace('.', '/')}/$name/$version/$name-$version.pom"
-                println(url)
                 runCatching { URL(url).openStream() != null }.isSuccess
             }?.url?.toString()
 }

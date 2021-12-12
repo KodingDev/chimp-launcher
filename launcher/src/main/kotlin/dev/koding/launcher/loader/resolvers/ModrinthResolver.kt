@@ -1,18 +1,23 @@
 package dev.koding.launcher.loader.resolvers
 
-import dev.koding.launcher.data.launcher.Download
 import dev.koding.launcher.data.modrinth.ModrinthAPI
 import dev.koding.launcher.launch.ResourcesDirectory
-import dev.koding.launcher.loader.*
+import dev.koding.launcher.loader.LoadedResource
+import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.loader.ResourceResolver
+import dev.koding.launcher.loader.describe
+import dev.koding.launcher.util.pathComponents
 import mu.KotlinLogging
+import java.net.URI
 
 object ModrinthResolver : ResourceResolver {
     private val logger = KotlinLogging.logger {}
 
-    override suspend fun resolve(manager: ResourceManager, resource: ResourceLocation): LoadedResource<*>? {
-        if (!resource.namespace.equals("modrinth", true)) return null
+    override fun matches(uri: URI) = uri.scheme.equals("content", true) &&
+            uri.host.equals("com.modrinth", true)
 
-        val mod = resource.path[0]
+    override suspend fun resolve(manager: ResourceManager, resource: URI): LoadedResource? {
+        val mod = resource.pathComponents.first()
         val versionName = resource.path.getOrNull(1) ?: "latest"
 
         // For speed's sake we will assume that the file is the correct mod
@@ -20,7 +25,7 @@ object ModrinthResolver : ResourceResolver {
         val target = "modrinth/${mod}/${versionName}/${mod}-${versionName}.jar"
         val targetFile = manager.config[ResourcesDirectory]?.resolve(target)
             ?: error("No resources directory configured")
-        if (targetFile.exists()) return manager.load(FileResource(resource.toString(), targetFile.absolutePath))
+        if (targetFile.exists()) return manager.load(targetFile.toURI())
 
         logger.debug { "Searching for modrinth resource $resource" }
         val result = ModrinthAPI.search(mod)
@@ -37,8 +42,8 @@ object ModrinthResolver : ResourceResolver {
         val versions = ModrinthAPI.getVersions(hit.modId)
         if (versions.isEmpty()) return null
 
-        val version = (if (resource.path.size == 1) versions.first()
-        else versions.find { it.versionNumber == resource.path[1] }) ?: return null
+        val version = (if (resource.pathComponents.size == 1) versions.first()
+        else versions.find { it.versionNumber == resource.pathComponents[1] }) ?: return null
 
         val file = version.files.firstOrNull() ?: return run {
             logger.debug { "No version found for modrinth resource $resource" }
@@ -46,14 +51,11 @@ object ModrinthResolver : ResourceResolver {
         }
 
         return manager.load(
-            UrlResource(
-                resource.toString(),
-                Download(
-                    file.url,
-                    path = target,
-                    integrity = Download.Integrity(sha1 = file.hashes.sha1, sha256 = file.hashes.sha256),
-                )
-            )
+            URI(file.url).describe {
+                path = target
+                sha1 = file.hashes.sha1
+                sha256 = file.hashes.sha256
+            }
         )
     }
 }

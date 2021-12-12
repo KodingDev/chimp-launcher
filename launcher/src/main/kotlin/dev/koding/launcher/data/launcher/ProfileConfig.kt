@@ -3,25 +3,27 @@
 package dev.koding.launcher.data.launcher
 
 import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
-import dev.koding.launcher.loader.Resource
+import dev.koding.launcher.util.URISerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.*
+import java.net.URI
 
 @Serializable
 data class ProfileConfig(
     val name: String,
     val launch: Launch,
-    val resources: List<Resource> = emptyList(),
+    val resources: List<@Serializable(URISerializer::class) URI> = emptyList(),
     @Serializable(FileMapDeserializer::class)
     val files: Map<String, File> = emptyMap()
 ) {
     @Serializable
     data class Launch(
-        val profile: String,
+        @Serializable(URISerializer::class)
+        val profile: URI,
         val arguments: LauncherManifest.Arguments = LauncherManifest.Arguments(),
         val debug: Boolean = false,
         val macOSWorkaround: Boolean = false

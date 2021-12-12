@@ -3,6 +3,8 @@ package dev.koding.launcher.bootstrap
 import dev.koding.launcher.data.launcher.download
 import dev.koding.launcher.frame.LauncherFrame
 import dev.koding.launcher.launcherHome
+import dev.koding.launcher.util.fromUrl
+import dev.koding.launcher.util.json
 import java.io.File
 import java.net.URLClassLoader
 
