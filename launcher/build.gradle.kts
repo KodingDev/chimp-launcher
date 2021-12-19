@@ -3,8 +3,8 @@ dependencies {
 
     api("com.google.guava:guava:31.0.1-jre")
     api("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
-    api("org.apache.logging.log4j:log4j-core:2.14.1")
-    api("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
+    api("org.apache.logging.log4j:log4j-core:2.16.0")
+    api("org.apache.logging.log4j:log4j-slf4j-impl:2.16.0")
     api("org.apache.commons:commons-text:1.9")
 
     api("io.ktor:ktor-client-apache:1.6.4")

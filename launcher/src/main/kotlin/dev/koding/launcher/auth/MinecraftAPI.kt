@@ -22,10 +22,12 @@ object MinecraftAPI {
         }
 
     suspend fun validate(accessToken: String): Boolean =
-        httpClient.post<HttpResponse>("https://authserver.mojang.com/validate") {
-            contentType(ContentType.Application.Json)
-            body = MinecraftValidateRequest(accessToken)
-        }.status.isSuccess()
+        runCatching {
+            httpClient.post<HttpResponse>("https://authserver.mojang.com/validate") {
+                contentType(ContentType.Application.Json)
+                body = MinecraftValidateRequest(accessToken)
+            }
+        }.isSuccess
 
     suspend fun refresh(accessToken: String): MinecraftRefreshResponse =
         httpClient.post("https://authserver.mojang.com/refresh") {

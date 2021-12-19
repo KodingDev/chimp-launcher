@@ -35,7 +35,7 @@ class ProfileLoader(
                 resourceManager.load(it)
             } catch (e: Exception) {
                 logger.error(e) { "Failed to load resource: $it" }
-                LauncherFrame.update("Download failed (${it.name}): ${e.message}")
+                LauncherFrame.main?.update("Download failed (${it.name}): ${e.message}")
                 throw e
             }
         }

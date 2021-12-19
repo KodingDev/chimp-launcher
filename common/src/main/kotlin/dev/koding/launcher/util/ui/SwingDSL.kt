@@ -46,7 +46,7 @@ fun frame(
 @SwingDSL
 fun dialog(
     title: String = "Chimp Launcher",
-    frame: JFrame? = LauncherFrame.frame,
+    frame: JFrame? = LauncherFrame.main?.frame,
     size: Pair<Int, Int>? = null,
     block: JDialog.() -> Unit
 ): JDialog {

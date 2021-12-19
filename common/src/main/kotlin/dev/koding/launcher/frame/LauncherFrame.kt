@@ -5,23 +5,30 @@ import dev.koding.launcher.util.ui.content
 import dev.koding.launcher.util.ui.frame
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
 import javax.swing.*
-import kotlin.system.exitProcess
 
-object LauncherFrame {
+class LauncherFrame(showLog: Boolean = true, size: Pair<Int, Int> = 600 to 400) {
+    companion object {
+        var main: LauncherFrame? = null
+            private set
+
+        fun init() {
+            if (main != null) return
+            main = LauncherFrame()
+        }
+    }
+
     var frame: JFrame? = null
 
     private val log by lazy { JTextArea().apply { isEditable = false } }
     private val progress by lazy { JProgressBar() }
     private val status by lazy { JLabel("Starting game...").apply { alignmentX = Component.CENTER_ALIGNMENT } }
 
-    fun create(showLog: Boolean = true, size: Pair<Int, Int> = 600 to 400) {
+    init {
         applySwingTheme()
-        if (frame != null && frame?.isVisible == true) return
-
         frame = frame(size = size) {
+            defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+
             content {
                 layout = BorderLayout()
 
@@ -34,10 +41,6 @@ object LauncherFrame {
                     +progress
                 } + (if (showLog) BorderLayout.SOUTH else BorderLayout.CENTER)
             }
-
-            addWindowListener(object : WindowAdapter() {
-                override fun windowClosing(e: WindowEvent?) = exitProcess(0)
-            })
         }
     }
 
@@ -45,12 +48,13 @@ object LauncherFrame {
         frame ?: return
         frame!!.isVisible = false
         frame!!.dispose()
+        frame = null
     }
 
     fun update(status: String? = null, progress: Int? = null) {
         frame ?: return
-        progress?.let { LauncherFrame.progress.value = it }
-        status?.let { LauncherFrame.status.text = it }
+        progress?.let { this.progress.value = it }
+        status?.let { this.status.text = it }
     }
 
     fun log(message: String) {

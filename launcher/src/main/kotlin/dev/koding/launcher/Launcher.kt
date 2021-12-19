@@ -18,6 +18,8 @@ import dev.koding.launcher.util.system.MacUtil
 import dev.koding.launcher.util.system.SwingUtil
 import dev.koding.launcher.util.system.configureLogging
 import dev.koding.launcher.util.system.setLogLevel
+import dev.koding.launcher.util.ui.content
+import dev.koding.launcher.util.ui.dialog
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +27,16 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.logging.log4j.Level
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Font
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.io.File
+import javax.swing.JLabel
+import javax.swing.JScrollPane
+import javax.swing.JTextArea
 import kotlin.system.exitProcess
 
 // TODO: Clean up this class *somehow*
@@ -78,21 +89,54 @@ suspend fun main(args: Array<String>) {
         )
     )
 
-    if (gui == true) LauncherFrame.create()
+    if (gui == true) LauncherFrame.init()
     if (debug == true) setLogLevel(Level.DEBUG)
-    if (vanilla != null) return launchVanilla(vanilla!!)
-    if (version != null) return launchProfile(
-        ProfileConfig(version!!, ProfileConfig.Launch("profile:${version}")),
-        launchOptions
-    )
-    if (profilePath != null) return launchProfile(File(profilePath!!).json(), launchOptions)
 
-    launch(profile)
+    try {
+        if (vanilla != null) return launchVanilla(vanilla!!)
+        if (version != null) return launchProfile(
+            ProfileConfig(version!!, ProfileConfig.Launch("profile:${version}")),
+            launchOptions
+        )
+        if (profilePath != null) return launchProfile(File(profilePath!!).json(), launchOptions)
+        launch(profile)
+    } catch (e: Exception) {
+        dialog(title = "Error") {
+            content {
+                layout = BorderLayout()
+
+                panel {
+                    padding = 10
+
+                    +JLabel("Uh oh! Something went wrong!").apply {
+                        foreground = Color(0xef5350)
+                        font = font.deriveFont(font.style or Font.BOLD)
+                    }
+
+                    +verticalSpace(10)
+                    +JLabel("Please report this error to the developers:")
+                } + BorderLayout.NORTH
+
+                JScrollPane(JTextArea().apply {
+                    isEditable = false
+                    text = e.stackTraceToString()
+                }).apply {
+                    preferredSize = Dimension(600, 400)
+                } + BorderLayout.SOUTH
+            }
+
+            pack()
+            requestFocusInWindow()
+            addWindowListener(object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent?) = exitProcess(0)
+            })
+        }
+    }
 }
 
 private suspend fun launch(selectedProfile: String?) {
-    LauncherFrame.create()
-    LauncherFrame.update("Loading profiles")
+    LauncherFrame.init()
+    LauncherFrame.main?.update("Loading profiles")
 
     val localConfig = readResource<LocalConfig>("/config.json")
     val configPath = System.getProperty("launcher.remoteConfig")?.let { File(it) }
@@ -140,12 +184,12 @@ private suspend fun launchProfile(profile: ProfileConfig, options: LaunchOptions
         config[LauncherDirectory] = options.launcherDirectory ?: launcherHome.resolve("launcher")
         config[GameDirectory] = options.gameDirectory ?: launcherHome.resolve("profiles/${profile.name}")
 
-        progressHandler = { name, progress -> LauncherFrame.update(name, progress?.times(100)?.toInt()) }
+        progressHandler = { name, progress -> LauncherFrame.main?.update(name, progress?.times(100)?.toInt()) }
     }.apply(options.block)
 
     loader.load()
     val process = loader.start() ?: return
-    LauncherFrame.cleanup()
+    LauncherFrame.main?.cleanup()
     withContext(Dispatchers.IO) { process.waitFor() }
     exitProcess(0)
 }

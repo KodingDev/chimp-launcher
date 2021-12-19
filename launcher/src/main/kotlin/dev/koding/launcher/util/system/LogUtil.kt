@@ -46,6 +46,6 @@ class LogUtil(
     }
 
     override fun append(event: LogEvent) {
-        LauncherFrame.log(layout.toByteArray(event).toString(Charsets.UTF_8))
+        LauncherFrame.main?.log(layout.toByteArray(event).toString(Charsets.UTF_8))
     }
 }

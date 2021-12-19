@@ -9,17 +9,17 @@ import java.net.URLClassLoader
 
 object Bootstrap {
     fun bootstrap(manifest: Manifest, args: Array<String>) {
-        LauncherFrame.create(showLog = false, size = 600 to 85)
-        LauncherFrame.update("Bootstrapper is loading...")
+        val frame = LauncherFrame(showLog = false, size = 600 to 85)
+        frame.update("Bootstrapper is loading...")
 
         val libDir = launcherHome.resolve("launcher/libraries")
         val dependencies = manifest.dependencies.map { it.toDownload() }
             .map {
                 it.download(libDir, progressHandler =
-                { status, _ -> LauncherFrame.update(status = status) }).toURI().toURL()
+                { status, _ -> frame.update(status = status) }).toURI().toURL()
             }
 
-        LauncherFrame.cleanup()
+        frame.cleanup()
         val classLoader = URLClassLoader(dependencies.toTypedArray(), null)
         val launcher = classLoader.loadClass(manifest.main)
         System.setProperty("chimp.mainClass", "dev.koding.launcher.bootstrap.BootstrapKt")
