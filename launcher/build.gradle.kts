@@ -1,3 +1,7 @@
+plugins {
+    id("dev.koding.chimp-launcher.gradle")
+}
+
 dependencies {
     api(project(":common"))
 
@@ -21,5 +25,3 @@ tasks.withType<Jar> {
         "Main-Class" to "dev.koding.launcher.LauncherKt"
     )
 }
-
-tasks.create<dev.koding.launcher.gradle.task.CreateBootstrapConfig>("createBootstrapConfig")

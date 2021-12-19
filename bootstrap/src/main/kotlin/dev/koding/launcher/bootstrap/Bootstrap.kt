@@ -1,5 +1,7 @@
 package dev.koding.launcher.bootstrap
 
+import dev.koding.launcher.data.launcher.Config
+import dev.koding.launcher.data.launcher.Manifest
 import dev.koding.launcher.data.launcher.download
 import dev.koding.launcher.frame.LauncherFrame
 import dev.koding.launcher.launcherHome
@@ -19,7 +21,7 @@ object Bootstrap {
                 { status, _ -> frame.update(status = status) }).toURI().toURL()
             }
 
-        frame.cleanup()
+        frame.dispose()
         val classLoader = URLClassLoader(dependencies.toTypedArray(), null)
         val launcher = classLoader.loadClass(manifest.main)
         System.setProperty("chimp.mainClass", "dev.koding.launcher.bootstrap.BootstrapKt")

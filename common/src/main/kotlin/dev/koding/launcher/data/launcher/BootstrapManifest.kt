@@ -1,6 +1,5 @@
-package dev.koding.launcher.bootstrap
+package dev.koding.launcher.data.launcher
 
-import dev.koding.launcher.data.launcher.Download
 import kotlinx.serialization.Serializable
 
 @Serializable

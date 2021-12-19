@@ -189,7 +189,7 @@ private suspend fun launchProfile(profile: ProfileConfig, options: LaunchOptions
 
     loader.load()
     val process = loader.start() ?: return
-    LauncherFrame.main?.cleanup()
+    LauncherFrame.main?.dispose()
     withContext(Dispatchers.IO) { process.waitFor() }
     exitProcess(0)
 }

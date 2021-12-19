@@ -18,7 +18,7 @@ class LauncherFrame(showLog: Boolean = true, size: Pair<Int, Int> = 600 to 400) 
         }
     }
 
-    var frame: JFrame? = null
+    val frame: JFrame
 
     private val log by lazy { JTextArea().apply { isEditable = false } }
     private val progress by lazy { JProgressBar() }
@@ -44,21 +44,17 @@ class LauncherFrame(showLog: Boolean = true, size: Pair<Int, Int> = 600 to 400) 
         }
     }
 
-    fun cleanup() {
-        frame ?: return
-        frame!!.isVisible = false
-        frame!!.dispose()
-        frame = null
+    fun dispose() {
+        frame.isVisible = false
+        frame.dispose()
     }
 
     fun update(status: String? = null, progress: Int? = null) {
-        frame ?: return
         progress?.let { this.progress.value = it }
         status?.let { this.status.text = it }
     }
 
     fun log(message: String) {
-        frame ?: return
         log.append(message)
         log.caretPosition = log.document.length
     }
