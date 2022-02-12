@@ -36,6 +36,7 @@ import java.awt.Font
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
+import java.net.URI
 import javax.swing.JLabel
 import javax.swing.JScrollPane
 import javax.swing.JTextArea
@@ -97,7 +98,7 @@ suspend fun main(args: Array<String>) {
     try {
         if (vanilla != null) return launchVanilla(vanilla!!)
         if (version != null) return launchProfile(
-            ProfileConfig(version!!, ProfileConfig.Launch("profile:${version}")),
+            ProfileConfig(version!!, ProfileConfig.Launch(URI("content://net.minecraft/$version"))),
             launchOptions
         )
         if (profilePath != null) return launchProfile(File(profilePath!!).json(), launchOptions)
