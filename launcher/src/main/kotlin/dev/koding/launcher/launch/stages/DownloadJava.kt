@@ -10,6 +10,7 @@ import dev.koding.launcher.launch.JavaDirectory
 import dev.koding.launcher.launch.LaunchStage
 import dev.koding.launcher.launch.LauncherDirectory
 import dev.koding.launcher.launch.MinecraftLauncher
+import dev.koding.launcher.util.extractZip
 import dev.koding.launcher.util.json
 import mu.KotlinLogging
 import java.io.File
@@ -29,32 +30,38 @@ object DownloadJava : LaunchStage<DownloadJava.Result> {
         val javaVersion = launcher.manifest.javaVersion ?: error("Java version does not exist")
         val home = root.resolve("${javaVersion.component}/${javaVersion.majorVersion}")
 
-        val runtime = JavaRuntime.fetch().select()
-        val runtimeData =
-            runtime?.get(javaVersion.component)?.match(javaVersion) ?: error("No applicable Java version found")
+        if (javaVersion.asset != null) {
+            val downloaded = javaVersion.asset.asDownload()?.download(home.resolve("download.zip"), strict = true)
+                ?: error("Failed to download java")
+            downloaded.extractZip(home, eliminateRoot = true)
+        } else {
+            val runtime = JavaRuntime.fetch().select()
+            val runtimeData =
+                runtime?.get(javaVersion.component)?.match(javaVersion) ?: error("No applicable Java version found")
 
-        val jdkManifest =
-            runtimeData.manifest.asDownload()?.download(home)?.json<JdkManifest>() ?: error("Invalid manifest")
-        jdkManifest.files.entries.forEachIndexed { i, (path, data) ->
-            launcher.progressHandler(null, i / jdkManifest.files.size.toDouble())
-            when (data.type) {
-                JdkManifest.File.Type.DIRECTORY -> {
-                    val dir = home.resolve(path)
-                    logger.debug { "Creating directory: $dir" }
-                    if (!dir.exists()) dir.mkdirs()
-                }
-                JdkManifest.File.Type.FILE -> {
-                    val file = data.downloads?.raw?.asDownload()?.download(home.resolve(path), strict = true)
-                        ?: return@forEachIndexed
-                    if (data.executable == true) file.setExecutable(true)
-                }
-                JdkManifest.File.Type.LINK -> {
-                    val source = home.resolve(path).toPath()
-                    val target = home.resolve(data.target ?: return@forEachIndexed).toPath()
-                    logger.debug { "Creating symlink: $source -> $target" }
+            val jdkManifest =
+                runtimeData.manifest.asDownload()?.download(home)?.json<JdkManifest>() ?: error("Invalid manifest")
+            jdkManifest.files.entries.forEachIndexed { i, (path, data) ->
+                launcher.progressHandler(null, i / jdkManifest.files.size.toDouble())
+                when (data.type) {
+                    JdkManifest.File.Type.DIRECTORY -> {
+                        val dir = home.resolve(path)
+                        logger.debug { "Creating directory: $dir" }
+                        if (!dir.exists()) dir.mkdirs()
+                    }
+                    JdkManifest.File.Type.FILE -> {
+                        val file = data.downloads?.raw?.asDownload()?.download(home.resolve(path), strict = true)
+                            ?: return@forEachIndexed
+                        if (data.executable == true) file.setExecutable(true)
+                    }
+                    JdkManifest.File.Type.LINK -> {
+                        val source = home.resolve(path).toPath()
+                        val target = home.resolve(data.target ?: return@forEachIndexed).toPath()
+                        logger.debug { "Creating symlink: $source -> $target" }
 
-                    if (Files.isSymbolicLink(source) || Files.isSymbolicLink(target)) return@forEachIndexed
-                    Files.createSymbolicLink(source, target)
+                        if (Files.isSymbolicLink(source) || Files.isSymbolicLink(target)) return@forEachIndexed
+                        Files.createSymbolicLink(source, target)
+                    }
                 }
             }
         }

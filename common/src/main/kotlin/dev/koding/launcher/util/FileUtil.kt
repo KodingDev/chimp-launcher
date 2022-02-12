@@ -31,11 +31,16 @@ fun URL.download(file: File) {
     }
 }
 
-fun File.extractZip(destination: File) {
+fun File.extractZip(destination: File, eliminateRoot: Boolean = false) {
     destination.mkdirs()
     ZipFile(this).use { zip ->
+        val root = zip.entries().nextElement().name.substringBefore('/')
+        val commonRoot = zip.entries().asSequence().all { it.name.startsWith(root) }
+
         zip.entries().asSequence().forEach { entry ->
-            val file = File(destination, entry.name)
+            val name = if (commonRoot && eliminateRoot) entry.name.substringAfter(root) else entry.name
+            val file = File(destination, name)
+
             if (entry.isDirectory) {
                 file.mkdirs()
             } else {

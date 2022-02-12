@@ -60,7 +60,7 @@ val LauncherManifest.Library.assets
         *(downloads?.classifiers?.filterKeys { it !in OS.classifiers }?.values?.toTypedArray() ?: emptyArray())
     )
 
-val LauncherManifest.Library.native
+val LauncherManifest.Library.nativeAsset
     get() = OS.type.names.firstNotNullOfOrNull { natives[it] }?.let { downloads?.classifiers?.get(it) }
 
 fun LauncherManifest.Library.isNative(asset: Asset) =

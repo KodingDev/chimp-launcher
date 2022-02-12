@@ -1,8 +1,9 @@
 package dev.koding.launcher.launch.stages
 
 import dev.koding.launcher.data.minecraft.manifest.asDownload
+import dev.koding.launcher.data.minecraft.manifest.asset
 import dev.koding.launcher.data.minecraft.manifest.filterMatchesRule
-import dev.koding.launcher.data.minecraft.manifest.native
+import dev.koding.launcher.data.minecraft.manifest.nativeAsset
 import dev.koding.launcher.launch.LaunchStage
 import dev.koding.launcher.launch.MinecraftLauncher
 import dev.koding.launcher.util.extractZip
@@ -18,7 +19,8 @@ object SetupNatives : LaunchStage<SetupNatives.Result> {
         val root = downloadLibraries.librariesFolder.resolve("net/minecraft/natives/${launcher.manifest.id}")
 
         logger.info { "Setting up natives" }
-        val natives = launcher.manifest.libraries.filterMatchesRule().mapNotNull { it.native?.asDownload() }
+        val natives = launcher.manifest.libraries.filterMatchesRule()
+            .mapNotNull { it.nativeAsset?.asDownload() ?: if (it.native) it.asset.asDownload() else null }
 
         if (root.exists()) root.deleteRecursively()
         root.mkdirs()

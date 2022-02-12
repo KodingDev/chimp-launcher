@@ -54,7 +54,8 @@ data class LauncherManifest(
         val url: String? = null,
         val downloads: Downloads? = null,
         val rules: List<Rule> = emptyList(),
-        val natives: Map<String, String> = emptyMap()
+        val natives: Map<String, String> = emptyMap(),
+        val native: Boolean = false,
     ) {
         @Serializable
         data class Downloads(
@@ -94,7 +95,8 @@ data class LauncherManifest(
     @Serializable
     data class JavaVersion(
         val component: String,
-        val majorVersion: Int
+        val majorVersion: Int,
+        val asset: Asset? = null
     )
 
     @Serializable

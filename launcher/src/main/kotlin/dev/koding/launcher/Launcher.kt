@@ -45,7 +45,7 @@ import kotlin.system.exitProcess
 // TODO: Clean up this class *somehow*
 val arguments = arrayListOf<String>()
 
-private val resourceManager = ResourceManager {
+val resourceManager = ResourceManager {
     +FabricResolver
     +MinecraftVersionResolver
     +ModrinthResolver

@@ -3,19 +3,16 @@ package dev.koding.launcher.launch.stages
 import dev.koding.launcher.auth.AuthData
 import dev.koding.launcher.auth.CLIENT_ID
 import dev.koding.launcher.data.minecraft.manifest.*
-import dev.koding.launcher.launch.ExtraArgs
-import dev.koding.launcher.launch.GameDirectory
-import dev.koding.launcher.launch.LaunchStage
-import dev.koding.launcher.launch.MinecraftLauncher
+import dev.koding.launcher.launch.*
 import dev.koding.launcher.util.replaceParams
 import dev.koding.launcher.util.system.JavaUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.io.File
 
 object StartGame : LaunchStage<Process> {
     private val logger = KotlinLogging.logger {}
+    private val coroutineScope = CoroutineScope(Dispatchers.IO) + Job()
 
     override suspend fun run(launcher: MinecraftLauncher): Process {
         val gameDir = launcher.config[GameDirectory] ?: error("Game directory not specified")
@@ -75,6 +72,11 @@ object StartGame : LaunchStage<Process> {
             )
         }
 
+        launcher.config[StartupHandler]?.let {
+            logger.debug { "Running startup handler: $it" }
+            it(launcher)
+        }
+
         logger.info { "Launching Minecraft" }
         logger.debug { "Command line: ${commandLine.joinToString(separator = " ")}" }
 
@@ -82,8 +84,14 @@ object StartGame : LaunchStage<Process> {
         val process = withContext(Dispatchers.IO) {
             ProcessBuilder(commandLine)
                 .directory(gameDir)
-                .inheritIO()
                 .start()
+        }
+
+        coroutineScope.launch {
+            // Log the process output
+            process.inputStream.bufferedReader().forEachLine {
+                logger.info { it }
+            }
         }
 
         Runtime.getRuntime().addShutdownHook(Thread {

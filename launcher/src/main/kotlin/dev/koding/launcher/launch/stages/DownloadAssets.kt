@@ -26,7 +26,11 @@ object DownloadAssets : LaunchStage<DownloadAssets.Result> {
 
         launcher.progressHandler("Downloading asset index", 0.0)
         logger.info { "Downloading asset index" }
-        val assetIndex = launcher.manifest.assetIndex?.asDownload()?.download(folder.resolve("indexes"))
+        val assetIndex = launcher.manifest.assetIndex?.asDownload()
+            ?.let {
+                val target = folder.resolve("indexes/${it.path.substringAfterLast('/')}")
+                it.download(target, strict = true)
+            }
             ?.json<AssetIndex>() ?: error("No asset index")
 
         logger.info { "Downloading assets" }
