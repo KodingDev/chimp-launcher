@@ -108,7 +108,7 @@ suspend fun run() {
     val minecraftManifest = LauncherManifest(
         id = versionManifest.id,
         mainClass = versionManifest.mainClass,
-        minecraftArguments = versionManifest.minecraftArguments + " --assetsDir \${assets_root}",
+        minecraftArguments = versionManifest.minecraftArguments.replace("--assetsDir assets", "") + " --assetsDir \${assets_root}",
         type = "release",
         javaVersion = LauncherManifest.JavaVersion(
             "Feather-${version.name}",
