@@ -10,6 +10,7 @@ import dev.koding.launcher.launch.GameDirectory
 import dev.koding.launcher.launch.MinecraftLauncher
 import dev.koding.launcher.launch.stages.StartGame
 import mu.KotlinLogging
+import java.net.URI
 
 class ProfileLoader(
     private val profile: ProfileConfig,
@@ -49,7 +50,7 @@ class ProfileLoader(
 
             when (data.action) {
                 ProfileConfig.File.Action.COPY -> {
-                    val resource = data.resource?.let { resourceManager.load(NamedResource(it)) }
+                    val resource = data.resource?.let { resourceManager.load(URI(it)) }
                         ?: return@forEachIndexed
                     logger.debug { "Copying file: ${resource.file.absolutePath} -> ${file.absolutePath}" }
                     resource.file.copyTo(file, overwrite = true)

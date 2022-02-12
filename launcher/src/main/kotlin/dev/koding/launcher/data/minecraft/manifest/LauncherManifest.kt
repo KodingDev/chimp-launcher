@@ -2,13 +2,14 @@
 
 package dev.koding.launcher.data.minecraft.manifest
 
-import dev.koding.launcher.loader.NamedResource
 import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.util.URISerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.*
+import java.net.URI
 
 @Serializable
 data class LauncherManifest(
@@ -26,11 +27,11 @@ data class LauncherManifest(
     val inheritsFrom: String? = null
 ) {
     companion object {
-        suspend fun load(resourceManager: ResourceManager, name: String): LauncherManifest {
-            val manifest = resourceManager.load(NamedResource(name))?.json<LauncherManifest>()
+        suspend fun load(resourceManager: ResourceManager, resource: URI): LauncherManifest {
+            val manifest = resourceManager.load(resource)?.json<LauncherManifest>()
                 ?: error("Invalid resource")
             if (manifest.inheritsFrom != null) {
-                val sub = resourceManager.load(NamedResource("version:${manifest.inheritsFrom}"))
+                val sub = resourceManager.load(URI("content://net.minecraft/${manifest.inheritsFrom}"))
                     ?.json<LauncherManifest>() ?: error("Invalid launcher manifest")
                 return manifest.copy(
                     arguments = (manifest.arguments ?: Arguments()) + (sub.arguments ?: Arguments()),
@@ -104,7 +105,8 @@ data class LauncherManifest(
 
 @Serializable
 data class Asset(
-    val url: String? = null,
+    @Serializable(URISerializer::class)
+    val url: URI? = null,
     val size: Long? = null,
     val sha1: String? = null,
     val path: String? = null,

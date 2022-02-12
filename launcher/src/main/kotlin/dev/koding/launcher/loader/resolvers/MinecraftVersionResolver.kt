@@ -1,23 +1,28 @@
 package dev.koding.launcher.loader.resolvers
 
-import dev.koding.launcher.data.launcher.Download
 import dev.koding.launcher.data.minecraft.version.VersionManifest
 import dev.koding.launcher.data.minecraft.version.get
-import dev.koding.launcher.loader.*
+import dev.koding.launcher.loader.LoadedResource
+import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.loader.ResourceResolver
+import dev.koding.launcher.loader.describe
+import dev.koding.launcher.util.pathComponents
+import java.net.URI
 
 object MinecraftVersionResolver : ResourceResolver {
     private lateinit var versions: VersionManifest
 
-    override suspend fun resolve(manager: ResourceManager, resource: ResourceLocation): LoadedResource<*>? {
+    override fun matches(uri: URI) = uri.scheme.equals("content", true) &&
+            uri.host.equals("net.minecraft", true)
+
+    override suspend fun resolve(manager: ResourceManager, resource: URI): LoadedResource? {
         if (!this::versions.isInitialized) versions = VersionManifest.fetch()
-        if (!resource.namespace.equals("version", true)) return null
-        val version = resource.path.first()
+        val version = resource.pathComponents.first()
         return versions[version]?.let {
             manager.load(
-                UrlResource(
-                    resource.toString(),
-                    Download(it.url, path = "minecraft/versions/$version.json")
-                )
+                URI(it.url).describe {
+                    path = "minecraft/versions/$version.json"
+                }
             )
         }
     }

@@ -1,10 +1,13 @@
 package dev.koding.launcher.loader
 
 import dev.koding.launcher.launch.Config
+import dev.koding.launcher.loader.resolvers.DefaultResourceResolver
+import java.net.URI
 
 class ResourceManager {
 
     companion object {
+        // TODO: Remove this
         operator fun invoke(block: ResourceManager.() -> Unit): ResourceManager {
             val resourceManager = ResourceManager()
             resourceManager.block()
@@ -12,41 +15,22 @@ class ResourceManager {
         }
     }
 
-    private val resources = mutableMapOf<String, LoadedResource<*>>()
-    private val loaders = hashMapOf<Class<*>, ResourceLoader<*>>()
+    private val resources = mutableMapOf<URI, LoadedResource>()
+    private val resolvers = arrayListOf<ResourceResolver>()
 
-    val resolvers = arrayListOf<ResourceResolver>()
     val config = Config()
 
-    @Suppress("UNCHECKED_CAST")
-    suspend fun <T : Resource> load(resource: T): LoadedResource<*>? {
-        val res = this[resource.name]
-        if (res != null) return res as? LoadedResource<T>
+    suspend fun load(resource: URI) = (resolvers.find { it.matches(resource) } ?: DefaultResourceResolver)
+        .resolve(this, resource)
+        ?.also { resources[resource] = it }
 
-        return (loaders[resource::class.java] as? ResourceLoader<T>)
-            ?.load(this, resource)
-            ?.also { resources[resource.name] = it }
-    }
-
-    operator fun get(name: String) = resources[name]
+    operator fun get(uri: URI) = resources[uri]
     operator fun ResourceResolver.unaryPlus() = resolvers.add(this)
 
-    operator fun <T : Resource> ResourceLoader<T>.unaryPlus() {
-        loaders[this::class.java.declaringClass] = this
-    }
-}
-
-data class ResourceLocation(
-    val namespace: String,
-    val path: List<String>
-) {
-    override fun toString() = "$namespace:${path.joinToString(separator = "/")}"
 }
 
 interface ResourceResolver {
-    suspend fun resolve(manager: ResourceManager, resource: ResourceLocation): LoadedResource<*>?
-}
+    fun matches(uri: URI): Boolean
 
-interface ResourceLoader<T : Resource> {
-    suspend fun load(manager: ResourceManager, resource: T): LoadedResource<*>?
+    suspend fun resolve(manager: ResourceManager, resource: URI): LoadedResource?
 }
