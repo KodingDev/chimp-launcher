@@ -1,8 +1,10 @@
 package dev.koding.launcher.loader.resolvers
 
-import dev.koding.launcher.loader.*
+import dev.koding.launcher.loader.LoadedResource
+import dev.koding.launcher.loader.ResourceManager
+import dev.koding.launcher.loader.ResourceResolver
+import dev.koding.launcher.loader.describe
 import dev.koding.launcher.util.pathComponents
-import io.ktor.http.*
 import java.net.URI
 
 object FabricResolver : ResourceResolver {
@@ -13,14 +15,8 @@ object FabricResolver : ResourceResolver {
 
     override suspend fun resolve(manager: ResourceManager, resource: URI): LoadedResource? {
         val (intermediary, loader) = resource.pathComponents
-        val url = buildUrl {
-            takeFrom("https://fabricmc.net/download/vanilla/")
-            parameters.apply {
-                this["format"] = "profileJson"
-                this["intermediary"] = intermediary
-                this["loader"] = loader
-            }
-        }.describe { path = "fabric/$intermediary/$loader/version.json" }
+        val url = URI("https://meta.fabricmc.net/v2/versions/loader/$intermediary/$loader/profile/json")
+            .describe { path = "fabric/$intermediary/$loader/version.json" }
         return manager.load(url)
     }
 }

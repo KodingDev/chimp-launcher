@@ -97,10 +97,13 @@ suspend fun main(args: Array<String>) {
 
     try {
         if (vanilla != null) return launchVanilla(vanilla!!)
-        if (version != null) return launchProfile(
-            ProfileConfig(version!!, ProfileConfig.Launch(URI("content://net.minecraft/$version"))),
-            launchOptions
-        )
+        if (version != null) {
+            val address = if (version!!.startsWith("content://")) version!! else "content://net.minecraft/$version"
+            return launchProfile(
+                ProfileConfig("vanilla", ProfileConfig.Launch(URI(address))),
+                launchOptions
+            )
+        }
         if (profilePath != null) return launchProfile(File(profilePath!!).json(), launchOptions)
         launch(profile)
     } catch (e: Exception) {
