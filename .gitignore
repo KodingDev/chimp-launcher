@@ -1,4 +1,7 @@
 .gradle/
-.idea/
+.idea/*
 build/
 run/
+.DS_Store
+
+!.idea/copyright

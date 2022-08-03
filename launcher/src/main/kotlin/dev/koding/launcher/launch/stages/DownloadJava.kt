@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2022 Koding Dev
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package dev.koding.launcher.launch.stages
 
 import dev.koding.launcher.data.java.jdk.JdkManifest
@@ -49,11 +65,13 @@ object DownloadJava : LaunchStage<DownloadJava.Result> {
                         logger.debug { "Creating directory: $dir" }
                         if (!dir.exists()) dir.mkdirs()
                     }
+
                     JdkManifest.File.Type.FILE -> {
                         val file = data.downloads?.raw?.asDownload()?.download(home.resolve(path), strict = true)
                             ?: return@forEachIndexed
                         if (data.executable == true) file.setExecutable(true)
                     }
+
                     JdkManifest.File.Type.LINK -> {
                         val source = home.resolve(path).toPath()
                         val target = home.resolve(data.target ?: return@forEachIndexed).toPath()

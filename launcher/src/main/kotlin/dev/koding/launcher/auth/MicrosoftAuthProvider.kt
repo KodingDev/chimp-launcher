@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2022 Koding Dev
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package dev.koding.launcher.auth
 
 import dev.koding.launcher.util.httpClient
@@ -60,7 +76,7 @@ class MicrosoftAuthProvider : AuthProvider() {
     private suspend fun fetchOauthToken(): OAuthToken {
         logger.debug { "Fetching Microsoft OAuth token" }
         val verifier = Random.nextBytes(32).toUrlBase64()
-        val code = getAuthorizationCode(verifier) ?: error("Failed to get code")
+        val code = getAuthorizationCode(verifier)
         return getAuthorizationToken(
             "code" to code,
             "code_verifier" to verifier,
@@ -88,7 +104,7 @@ class MicrosoftAuthProvider : AuthProvider() {
             "grant_type" to "refresh_token",
         )
 
-    private suspend fun getAuthorizationCode(verifier: String): String? {
+    private suspend fun getAuthorizationCode(verifier: String): String {
         val url = url {
             protocol = URLProtocol.HTTPS
             host = "login.live.com"

@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2022 Koding Dev
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package dev.koding.launcher.custom
 
 import dev.koding.launcher.data.launcher.ProfileConfig
@@ -8,7 +24,10 @@ import dev.koding.launcher.data.minecraft.manifest.LauncherManifest
 import dev.koding.launcher.data.minecraft.manifest.Rule
 import dev.koding.launcher.data.minecraft.manifest.asDownload
 import dev.koding.launcher.frame.LauncherFrame
-import dev.koding.launcher.launch.*
+import dev.koding.launcher.launch.GameDirectory
+import dev.koding.launcher.launch.LauncherDirectory
+import dev.koding.launcher.launch.ResourcesDirectory
+import dev.koding.launcher.launch.StartupHandler
 import dev.koding.launcher.launch.stages.DownloadLibraries
 import dev.koding.launcher.launcherHome
 import dev.koding.launcher.loader.loader
